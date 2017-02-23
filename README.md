@@ -25,17 +25,13 @@ const doorkeeper = require('hapi-doorkeeper');
 Register the plugin on your server.
 
 ```js
-server.register(doorkeeper, (err) => {
-    if (err) {
-        throw err;
-    }
-    server.start((err) => {
-        if (err) {
-            throw err;
-        }
+server.register(doorkeeper)
+    .then(() => {
+        return server.start();
+    })
+    .then(() => {
         console.log(server.info.uri);
     });
-});
 ```
 
 Set up a route that can only be accessed by logged in users.

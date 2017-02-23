@@ -33,7 +33,6 @@ const mockServer = async (option) => {
     if (route) {
         server.route(route);
     }
-    await server.start();
     return server;
 };
 
@@ -71,8 +70,6 @@ test('without doorkeeper', async (t) => {
 
     t.is(response.statusCode, 200);
     t.is(response.payload, 'foo');
-
-    await server.stop();
 });
 
 test('missing env vars', async (t) => {
@@ -87,8 +84,6 @@ test('default auth', async (t) => {
 
     t.is(response.statusCode, 200);
     t.is(response.payload, 'foo');
-
-    await server.stop();
 });
 
 test('required auth', async (t) => {
@@ -108,8 +103,6 @@ test('required auth', async (t) => {
     t.is(response.statusCode, 302);
     t.is(response.headers.location, '/login?next=' + encodeURIComponent('/'));
     t.is(response.payload, 'You are being redirected...');
-
-    await server.stop();
 });
 
 test('/login route', async (t) => {
@@ -125,8 +118,6 @@ test('/login route', async (t) => {
     t.true(response.headers.location.startsWith('https://example.com/authorize?client_id=some-client&response_type=code&redirect_uri=https%3A%2F%2F'));
     t.true(response.headers.location.includes('%2Flogin&state='));
     t.is(response.payload, '');
-
-    await server.stop();
 });
 
 test('/logout route', async (t) => {
@@ -141,8 +132,6 @@ test('/logout route', async (t) => {
     t.is(response.statusCode, 302);
     t.is(response.headers.location, '/');
     t.is(response.payload, '');
-
-    await server.stop();
 });
 
 test('/logout redirects to next', async (t) => {
@@ -157,8 +146,6 @@ test('/logout redirects to next', async (t) => {
     t.is(response.statusCode, 302);
     t.is(response.headers.location, '/bah');
     t.is(response.payload, '');
-
-    await server.stop();
 });
 
 test('/logout ignores absolute next', async (t) => {
@@ -182,6 +169,4 @@ test('/logout ignores absolute next', async (t) => {
     t.is(unencoded.statusCode, 302);
     t.is(unencoded.headers.location, '/');
     t.is(unencoded.payload, '');
-
-    await server.stop();
 });

@@ -5,7 +5,7 @@ const boom = require('boom');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
-const onReady = (server) => {
+const register = (server, option, done) => {
     const { env } = process;
 
     server.auth.strategy('session', 'cookie', {
@@ -83,15 +83,14 @@ const onReady = (server) => {
             reply.redirect(resolveNext(request.query));
         }
     });
-};
 
-const register = (server, option, done) => {
-    onReady(server);
     done();
 };
 
 register.attributes = {
     pkg,
+    // TODO: Consider bundling bell and hapi-auth-cookie for the user, like this:
+    // https://github.com/ruiquelhas/copperfield/blob/b9b0d52d0f136a14885de471b32fb00d5edd2541/lib/index.js#L16
     dependencies : [
         'hapi-auth-cookie',
         'bell'
