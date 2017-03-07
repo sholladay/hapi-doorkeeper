@@ -42,6 +42,7 @@
   "keywords": [
     "hapi",
     "plugin",
+    "cookie",
     "auth",
     "authenticate",
     "authenticator",
