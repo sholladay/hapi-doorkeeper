@@ -20,7 +20,15 @@ const mockRoute = (option) => {
 const mockServer = async (option) => {
     const { plugin, route } = Object.assign(
         {
-            plugin : [cookie, bell, doorkeeper],
+            plugin : [cookie, bell, {
+                register : doorkeeper,
+                options  : {
+                    sessionSecretKey : 'please-make-this-much-more-secure',
+                    auth0Domain      : 'my-app.auth0.com',
+                    auth0PublicKey   : 'some-client-id',
+                    auth0SecretKey   : 'even-more-secret'
+                }
+            }],
             route  : mockRoute()
         },
         option
@@ -46,22 +54,6 @@ const mockRequest = (server, option) => {
     ));
 };
 
-const setEnv = () => {
-    const { env } = process;
-    env.SESSION_COOKIE_PASSWORD = 'oh-my-goodness-this-is-not-secure';
-    env.AUTH0_DOMAIN = 'example.com';
-    env.AUTH0_CLIENT_ID = 'some-client';
-    env.AUTH0_CLIENT_SECRET = 'some-secret';
-};
-
-test.beforeEach(() => {
-    const { env } = process;
-    delete env.SESSION_COOKIE_PASSWORD;
-    delete env.AUTH0_DOMAIN;
-    delete env.AUTH0_CLIENT_ID;
-    delete env.AUTH0_CLIENT_SECRET;
-});
-
 test('without doorkeeper', async (t) => {
     const server = await mockServer({
         plugin : null
@@ -72,13 +64,14 @@ test('without doorkeeper', async (t) => {
     t.is(response.payload, 'foo');
 });
 
-test('missing env vars', async (t) => {
-    const err = await t.throws(mockServer());
+test('missing options', async (t) => {
+    const err = await t.throws(mockServer({
+        plugin : [cookie, bell, doorkeeper]
+    }));
     t.regex(err.message, /required/);
 });
 
 test('default auth', async (t) => {
-    setEnv();
     const server = await mockServer();
     const response = await mockRequest(server);
 
@@ -87,7 +80,6 @@ test('default auth', async (t) => {
 });
 
 test('required auth', async (t) => {
-    setEnv();
     const server = await mockServer({
         route : mockRoute({
             config : {
@@ -106,7 +98,6 @@ test('required auth', async (t) => {
 });
 
 test('/login route', async (t) => {
-    setEnv();
     const server = await mockServer({
         route : null
     });
@@ -115,13 +106,12 @@ test('/login route', async (t) => {
     });
 
     t.is(response.statusCode, 302);
-    t.true(response.headers.location.startsWith('https://example.com/authorize?client_id=some-client&response_type=code&redirect_uri=https%3A%2F%2F'));
+    t.true(response.headers.location.startsWith('https://my-app.auth0.com/authorize?client_id=some-client-id&response_type=code&redirect_uri=https%3A%2F%2F'));
     t.true(response.headers.location.includes('%2Flogin&state='));
     t.is(response.payload, '');
 });
 
 test('/logout route', async (t) => {
-    setEnv();
     const server = await mockServer({
         route : null
     });
@@ -135,7 +125,6 @@ test('/logout route', async (t) => {
 });
 
 test('/logout redirects to next', async (t) => {
-    setEnv();
     const server = await mockServer({
         route : null
     });
@@ -149,7 +138,6 @@ test('/logout redirects to next', async (t) => {
 });
 
 test('/logout ignores absolute next', async (t) => {
-    setEnv();
     const server = await mockServer({
         route : null
     });

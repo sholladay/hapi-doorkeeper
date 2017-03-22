@@ -2,14 +2,25 @@
 
 const path = require('path');
 const boom = require('boom');
+const joi = require('joi');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
 const register = (server, option, done) => {
-    const { env } = process;
+    const schema = joi.object({
+        sessionSecretKey : joi.string().min(32).required(),
+        auth0Domain      : joi.string().hostname().min(3).required(),
+        auth0PublicKey   : joi.string().min(5).required(),
+        auth0SecretKey   : joi.string().min(5).required()
+    });
+    const validation = schema.validate(Object.assign({}, option));
+    if (validation.error) {
+        done(validation.error);
+    }
+    const config = validation.value;
 
     server.auth.strategy('session', 'cookie', {
-        password     : env.SESSION_COOKIE_PASSWORD,
+        password     : config.sessionSecretKey,
         cookie       : 'sid',
         redirectTo   : '/login',
         appendNext   : true,
@@ -21,12 +32,12 @@ const register = (server, option, done) => {
     server.auth.strategy('auth0', 'bell', {
         provider : 'auth0',
         config   : {
-            domain : env.AUTH0_DOMAIN
+            domain : config.auth0Domain
         },
         ttl          : 60 * 60 * 24,
-        password     : env.SESSION_COOKIE_PASSWORD,
-        clientId     : env.AUTH0_CLIENT_ID,
-        clientSecret : env.AUTH0_CLIENT_SECRET,
+        password     : config.sessionSecretKey,
+        clientId     : config.auth0PublicKey,
+        clientSecret : config.auth0SecretKey,
         isHttpOnly   : true,
         isSecure     : true,
         forceHttps   : true

@@ -29,6 +29,7 @@
   ],
   "dependencies": {
     "boom": "^4.2.0",
+    "joi": "^10.2.2",
     "url-type": "^0.2.1"
   },
   "devDependencies": {
@@ -37,7 +38,7 @@
     "eslint-config-tidy": "^0.4.0",
     "hapi": "^16.1.0",
     "hapi-auth-cookie": "^6.1.1",
-    "xo": "^0.17.0"
+    "xo": "^0.18.0"
   },
   "keywords": [
     "hapi",

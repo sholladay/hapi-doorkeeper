@@ -25,7 +25,15 @@ const doorkeeper = require('hapi-doorkeeper');
 Register the plugin on your server.
 
 ```js
-server.register(doorkeeper)
+server.register({
+    register : doorkeeper,
+    options  : {
+        sessionSecretKey : 'please-make-this-much-more-secure',
+        auth0Domain      : 'my-app.auth0.com',
+        auth0PublicKey   : 'some-client-id',
+        auth0SecretKey   : 'even-more-secret'
+    }
+})
     .then(() => {
         return server.start();
     })
@@ -57,18 +65,9 @@ Authentication is managed by [Auth0](https://auth0.com/). A few steps are requir
 
  - [Sign up for Auth0](https://auth0.com/)
  - [Set up an Auth0 Client](https://auth0.com/docs/clients)
- - [Provide Auth0 credentials](#environment-variables)
+ - [Provide Auth0 credentials](#option)
 
 User data is stored using [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) as an object with a `user` namespace so that you may store additional data alongside what this project provides, without conflicts. Access it as `request.auth.credentials.user`.
-
-## Environment variables
-
-All of the below are required.
-
- - `SESSION_COOKIE_PASSWORD` used for [Iron](https://github.com/hueniverse/iron) cookie encoding. Should be at least 32 characters long and occasionally rotated.
- - `AUTH0_DOMAIN` is the domain associated with your Auth0 account.
- - `AUTH0_CLIENT_ID` is the ID for an [Auth0 Client](manage.auth0.com/#/applications).
- - `AUTH0_CLIENT_SECRET` is the secret key for an Auth0 Client.
 
 ## Routes
 
@@ -87,6 +86,38 @@ If the user denies access to a social account, they will be redirected back to t
 Tags: `user`, `auth`, `session`, `logout`
 
 Ends a user session. Safe to visit regardless of whether a session is active or the validity of the user's credentials. The user will be redirected to `/`, the root of the server.
+
+## API
+
+### option
+
+Type: `object`
+
+Plugin settings. All of these are required.
+
+#### sessionSecretKey
+
+Type: `string`
+
+A passphrase used for [Iron](https://github.com/hueniverse/iron) cookie encoding. Should be at least 32 characters long and occasionally rotated.
+
+#### auth0Domain
+
+Type: `string`
+
+The domain associated with your Auth0 account.
+
+#### auth0PublicKey
+
+Type: `string`
+
+The ID for an [Auth0 Client](manage.auth0.com/#/applications).
+
+#### auth0SecretKey
+
+Type: `string`
+
+The secret key for an Auth0 Client.
 
 ## Contributing
 
