@@ -23,10 +23,10 @@ const mockServer = async (option) => {
             plugin : [cookie, bell, {
                 register : doorkeeper,
                 options  : {
-                    sessionSecretKey : 'please-make-this-much-more-secure',
+                    sessionSecretKey : 'pleasemakethissignificantlymoresecure',
                     auth0Domain      : 'my-app.auth0.com',
-                    auth0PublicKey   : 'some-client-id',
-                    auth0SecretKey   : 'even-more-secret'
+                    auth0PublicKey   : 'someclientid',
+                    auth0SecretKey   : 'evenmoresecret'
                 }
             }],
             route  : mockRoute()
@@ -106,7 +106,7 @@ test('/login route', async (t) => {
     });
 
     t.is(response.statusCode, 302);
-    t.true(response.headers.location.startsWith('https://my-app.auth0.com/authorize?client_id=some-client-id&response_type=code&redirect_uri=https%3A%2F%2F'));
+    t.true(response.headers.location.startsWith('https://my-app.auth0.com/authorize?client_id=someclientid&response_type=code&redirect_uri=https%3A%2F%2F'));
     t.true(response.headers.location.includes('%2Flogin&state='));
     t.is(response.payload, '');
 });
