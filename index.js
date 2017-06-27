@@ -16,6 +16,7 @@ const register = (server, option, done) => {
 
     if (error) {
         done(error);
+        return;
     }
 
     server.auth.strategy('session', 'cookie', {
