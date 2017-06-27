@@ -7,17 +7,16 @@ const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
 const register = (server, option, done) => {
-    const schema = joi.object({
-        sessionSecretKey : joi.string().min(32).required(),
-        auth0Domain      : joi.string().hostname().min(3).required(),
-        auth0PublicKey   : joi.string().min(5).required(),
-        auth0SecretKey   : joi.string().min(5).required()
+    const { error, value : config } = joi.validate(Object.assign({}, option), {
+        sessionSecretKey : joi.string().required().min(32),
+        auth0Domain      : joi.string().required().hostname().min(3),
+        auth0PublicKey   : joi.string().required().token().min(5),
+        auth0SecretKey   : joi.string().required().token().min(5)
     });
-    const validation = schema.validate(Object.assign({}, option));
-    if (validation.error) {
-        done(validation.error);
+
+    if (error) {
+        done(error);
     }
-    const config = validation.value;
 
     server.auth.strategy('session', 'cookie', {
         password     : config.sessionSecretKey,
@@ -53,8 +52,8 @@ const register = (server, option, done) => {
         method : 'GET',
         path   : '/login',
         config : {
-            tags        : ['user', 'auth', 'session', 'login'],
             description : 'Begin a user session.',
+            tags        : ['user', 'auth', 'session', 'login'],
             auth        : {
                 strategy : 'auth0',
                 mode     : 'try'
@@ -85,8 +84,8 @@ const register = (server, option, done) => {
         method : 'GET',
         path   : '/logout',
         config : {
-            tags        : ['user', 'auth', 'session', 'logout'],
             description : 'End a user session.',
+            tags        : ['user', 'auth', 'session', 'logout'],
             auth        : false
         },
         handler(request, reply) {
