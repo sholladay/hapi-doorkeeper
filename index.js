@@ -43,12 +43,6 @@ const register = (server, option, done) => {
         forceHttps   : true
     });
 
-    const resolveNext = (query) => {
-        const { next } = query;
-        const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
-        return path.resolve('/', (!hasHost(lastNext) && lastNext) || '');
-    };
-
     server.route({
         method : 'GET',
         path   : '/login',
@@ -67,7 +61,13 @@ const register = (server, option, done) => {
                 // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
                 // TODO: Perhaps save only user ID and map it to a server-side cache instead.
                 request.cookieAuth.set({ user : auth.credentials.profile });
-                reply.redirect(resolveNext(auth.credentials.query));
+                const { next } = auth.credentials.query;
+                const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
+                if (hasHost(lastNext)) {
+                    reply(boom.badRequest('Absolute URLs are not allowed in the `next` parameter for security reasons'));
+                    return;
+                }
+                reply.redirect(path.posix.resolve('/', lastNext || ''));
             }
             // This happens when users deny us access to their OAuth provider.
             // Chances are they clicked the wrong social icon.
@@ -91,7 +91,13 @@ const register = (server, option, done) => {
         },
         handler(request, reply) {
             request.cookieAuth.clear();
-            reply.redirect(resolveNext(request.query));
+            const { next } = request.query;
+            const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
+            if (hasHost(lastNext)) {
+                reply(boom.badRequest('Absolute URLs are not allowed in the `next` parameter for security reasons'));
+                return;
+            }
+            reply.redirect(path.posix.resolve('/', lastNext || ''));
         }
     });
 
