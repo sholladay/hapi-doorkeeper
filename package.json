@@ -1,65 +1,69 @@
 {
-  "name": "hapi-doorkeeper",
-  "version": "0.3.0",
-  "description": "User authentication for web servers.",
-  "homepage": "https://github.com/sholladay/hapi-doorkeeper",
-  "main": "index.js",
-  "author": {
-    "name": "Seth Holladay",
-    "url": "http://seth-holladay.com",
-    "email": "me@seth-holladay.com"
-  },
-  "scripts": {
-    "test": "xo && ava"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:sholladay/hapi-doorkeeper.git"
-  },
-  "bugs": {
-    "url": "https://github.com/sholladay/hapi-doorkeeper/issues",
-    "email": "me@seth-holladay.com"
-  },
-  "engines": {
-    "node": ">=6"
-  },
-  "license": "MPL-2.0",
-  "files": [
-    "index.js"
-  ],
-  "dependencies": {
-    "boom": "^4.2.0",
-    "joi": "^10.2.2",
-    "url-type": "^0.2.1"
-  },
-  "devDependencies": {
-    "ava": "^0.18.1",
-    "bell": "^8.5.0",
-    "eslint-config-tidy": "^0.4.0",
-    "hapi": "^16.1.0",
-    "hapi-auth-cookie": "^6.1.1",
-    "xo": "^0.18.0"
-  },
-  "keywords": [
-    "hapi",
-    "plugin",
-    "cookie",
-    "auth",
-    "authenticate",
-    "authenticator",
-    "authentication",
-    "authorize",
-    "authorization",
-    "login",
-    "logout",
-    "user",
-    "username",
-    "email",
-    "password",
-    "account",
-    "session"
-  ],
-  "xo": {
-    "extend": "tidy"
-  }
+    "name": "hapi-doorkeeper",
+    "version": "0.3.0",
+    "description": "User authentication for web servers",
+    "homepage": "https://github.com/sholladay/hapi-doorkeeper",
+    "main": "index.js",
+    "author": {
+        "name": "Seth Holladay",
+        "url": "https://seth-holladay.com",
+        "email": "me@seth-holladay.com"
+    },
+    "scripts": {
+        "test": "xo && ava"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:sholladay/hapi-doorkeeper.git"
+    },
+    "bugs": {
+        "url": "https://github.com/sholladay/hapi-doorkeeper/issues",
+        "email": "me@seth-holladay.com"
+    },
+    "engines": {
+        "node": ">=6"
+    },
+    "license": "MPL-2.0",
+    "files": [
+        "index.js"
+    ],
+    "peerDependencies": {
+        "hapi": ">=17"
+    },
+    "dependencies": {
+        "boom": "^7.1.1",
+        "joi": "^13.0.2",
+        "url-type": "^0.2.1"
+    },
+    "devDependencies": {
+        "ava": "^0.24.0",
+        "bell": "git@github.com:rapoell/bell.git#5e21300fa461a122c884031703a607594fbbe39e",
+        "eslint-config-tidy": "^0.6.2",
+        "hapi": "^17.2.0",
+        "hapi-auth-cookie": "^8.0.0",
+        "xo": "git@github.com:sindresorhus/xo.git#7c77af3cc036bf488f0b5b87e37fad9913e1a5f5"
+    },
+    "keywords": [
+        "hapi",
+        "server",
+        "plugin",
+        "cookie",
+        "auth",
+        "authenticate",
+        "authenticator",
+        "authentication",
+        "authorize",
+        "authorization",
+        "login",
+        "logout",
+        "user",
+        "username",
+        "email",
+        "password",
+        "account",
+        "session"
+    ],
+    "xo": {
+        "extend": "tidy"
+    }
 }

@@ -1,11 +1,12 @@
-# hapi-doorkeeper [![Build status for hapi-doorkeeper on Circle CI.](https://img.shields.io/circleci/project/sholladay/hapi-doorkeeper/master.svg "Circle Build Status")](https://circleci.com/gh/sholladay/hapi-doorkeeper "Hapi Doorkeeper Builds")
+# hapi-doorkeeper [![Build status for hapi Doorkeeper](https://img.shields.io/circleci/project/sholladay/hapi-doorkeeper/master.svg "Build Status")](https://circleci.com/gh/sholladay/hapi-doorkeeper "Builds")
 
-> User authentication for web servers.
+> User authentication for web servers
 
 ## Why?
 
- - User login is a major source of security problems.
- - User login is a very common need.
+ - Provides user login & logout routes.
+ - User auth is a very common need.
+ - User auth is a major source of security problems.
  - Secure systems should be easy to set up and use.
 
 ## Install
@@ -16,50 +17,48 @@ npm install hapi-doorkeeper --save
 
 ## Usage
 
-Get it into your program.
+Register the plugin on your server to provide the user auth routes.
 
 ```js
+const hapi = require('hapi');
+const bell = require('bell');
+const cookie = require('hapi-auth-cookie');
 const doorkeeper = require('hapi-doorkeeper');
-```
 
-Register the plugin on your server.
+const server = hapi.server();
 
-```js
-server.register({
-    register : doorkeeper,
-    options  : {
-        sessionSecretKey : 'please-make-this-much-more-secure',
-        auth0Domain      : 'my-app.auth0.com',
-        auth0PublicKey   : 'some-client-id',
-        auth0SecretKey   : 'even-more-secret'
-    }
-})
-    .then(() => {
-        return server.start();
-    })
-    .then(() => {
-        console.log(server.info.uri);
-    });
-```
-
-Set up a route that can only be accessed by logged in users.
-
-```js
-server.route({
-    method : 'GET',
-    path   : '/',
-    config : {
-        auth : {
-            strategy : 'session',
-            mode     : 'required'
+const init = async () => {
+    await server.register([bell, cookie, {
+        plugin : doorkeeper,
+        options  : {
+            sessionSecretKey : 'please-make-this-much-more-secure',
+            auth0Domain      : 'my-app.auth0.com',
+            auth0PublicKey   : 'some-client-id',
+            auth0SecretKey   : 'even-more-secret'
         }
-    },
-    handler(request, reply) {
-        const { user } = request.auth.credentials;
-        reply(`Hi ${user.name}, you are logged in! Here is the profile from Auth0: <pre>${JSON.stringify(user.raw, null, 2)}</pre> <a href="/logout">Click here to log out</a>`);
-    }
-});
+    }]);
+    server.route({
+        method : 'GET',
+        path   : '/',
+        config : {
+            auth : {
+                strategy : 'session',
+                mode     : 'required'
+            }
+        },
+        handler(request, reply) {
+            const { user } = request.auth.credentials;
+            reply(`Hi ${user.name}, you are logged in! Here is the profile from Auth0: <pre>${JSON.stringify(user.raw, null, 4)}</pre> <a href="/logout">Click here to log out</a>`);
+        }
+    });
+    await server.start();
+    console.log('Server ready:', server.info.uri);
+};
+
+init();
 ```
+
+The route above at `/` can only be accessed by logged in users, as denoted by the `session` strategy being `required`. If you are logged in, it will display your profile, otherwise it will redirect you to a login screen.
 
 Authentication is managed by [Auth0](https://auth0.com/). A few steps are required to finish the integration.
 
@@ -121,16 +120,16 @@ The secret key for an Auth0 Client.
 
 ## Contributing
 
-See our [contributing guidelines](https://github.com/sholladay/hapi-doorkeeper/blob/master/CONTRIBUTING.md "The guidelines for participating in this project.") for more details.
+See our [contributing guidelines](https://github.com/sholladay/hapi-doorkeeper/blob/master/CONTRIBUTING.md "Guidelines for participating in this project") for more details.
 
 1. [Fork it](https://github.com/sholladay/hapi-doorkeeper/fork).
 2. Make a feature branch: `git checkout -b my-new-feature`
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
-5. [Submit a pull request](https://github.com/sholladay/hapi-doorkeeper/compare "Submit code to this project for review.").
+5. [Submit a pull request](https://github.com/sholladay/hapi-doorkeeper/compare "Submit code to this project for review").
 
 ## License
 
-[MPL-2.0](https://github.com/sholladay/hapi-doorkeeper/blob/master/LICENSE "The license for hapi-doorkeeper.") © [Seth Holladay](http://seth-holladay.com "Author of hapi-doorkeeper.")
+[MPL-2.0](https://github.com/sholladay/hapi-doorkeeper/blob/master/LICENSE "License for hapi-doorkeeper") © [Seth Holladay](https://seth-holladay.com "Author of hapi-doorkeeper")
 
 Go make something, dang it.

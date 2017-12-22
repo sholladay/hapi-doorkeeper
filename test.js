@@ -1,40 +1,35 @@
 import test from 'ava';
-import { Server } from 'hapi';
+import hapi from 'hapi';
 import cookie from 'hapi-auth-cookie';
 import bell from 'bell';
 import doorkeeper from '.';
 
 const mockRoute = (option) => {
-    return Object.assign(
-        {
-            method : 'GET',
-            path   : '/',
-            handler(request, reply) {
-                reply('foo');
-            }
+    return {
+        method : 'GET',
+        path   : '/',
+        handler() {
+            return 'foo';
         },
-        option
-    );
+        ...option
+    };
 };
 
 const mockServer = async (option) => {
-    const { plugin, route } = Object.assign(
-        {
-            plugin : [cookie, bell, {
-                register : doorkeeper,
-                options  : {
-                    sessionSecretKey : 'pleasemakethissignificantlymoresecure',
-                    auth0Domain      : 'my-app.auth0.com',
-                    auth0PublicKey   : 'someclientid',
-                    auth0SecretKey   : 'evenmoresecret'
-                }
-            }],
-            route  : mockRoute()
-        },
-        option
-    );
-    const server = new Server();
-    server.connection();
+    const { plugin, route } = {
+        plugin : [cookie, bell, {
+            plugin  : doorkeeper,
+            options : {
+                sessionSecretKey : 'pleasemakethissignificantlymoresecure',
+                auth0Domain      : 'my-app.auth0.com',
+                auth0PublicKey   : 'someclientid',
+                auth0SecretKey   : 'evenmoresecret'
+            }
+        }],
+        route  : mockRoute(),
+        ...option
+    };
+    const server = hapi.server();
     if (plugin) {
         await server.register(plugin);
     }
@@ -45,13 +40,11 @@ const mockServer = async (option) => {
 };
 
 const mockRequest = (server, option) => {
-    return server.inject(Object.assign(
-        {
-            method : 'GET',
-            url    : '/'
-        },
-        option
-    ));
+    return server.inject({
+        method : 'GET',
+        url    : '/',
+        ...option
+    });
 };
 
 test('without doorkeeper', async (t) => {
@@ -104,7 +97,7 @@ test('/login route', async (t) => {
 
     t.is(response.statusCode, 302);
     t.true(response.headers['set-cookie'][0].startsWith('bell-auth0='));
-    t.true(response.headers['set-cookie'][0].endsWith('; Secure; HttpOnly; Path=/'));
+    t.true(response.headers['set-cookie'][0].endsWith('; Secure; HttpOnly; SameSite=Lax; Path=/'));
     t.true(response.headers.location.startsWith('https://my-app.auth0.com/authorize?client_id=someclientid&response_type=code&redirect_uri=https%3A%2F%2F'));
     t.true(response.headers.location.includes('%2Flogin&state='));
     t.is(response.payload, '');
@@ -118,7 +111,7 @@ test('/logout route', async (t) => {
         url : '/logout'
     });
     t.is(response.statusCode, 302);
-    t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Strict; Path=/');
+    t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
     t.is(response.headers.location, '/');
     t.is(response.payload, '');
 });
