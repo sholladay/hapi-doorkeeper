@@ -7,12 +7,12 @@ const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
 const register = (server, option) => {
-    const config = joi.attempt(option, {
+    const config = joi.attempt(option, joi.object().required().keys({
         sessionSecretKey : joi.string().required().min(32),
         auth0Domain      : joi.string().required().hostname().min(3),
         auth0PublicKey   : joi.string().required().token().min(5),
         auth0SecretKey   : joi.string().required().token().min(5)
-    });
+    }));
 
     server.auth.strategy('session', 'cookie', {
         password     : config.sessionSecretKey,
