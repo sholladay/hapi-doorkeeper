@@ -29,8 +29,8 @@ const server = hapi.server();
 
 const init = async () => {
     await server.register([bell, cookie, {
-        plugin : doorkeeper,
-        options  : {
+        plugin  : doorkeeper,
+        options : {
             sessionSecretKey : 'please-make-this-much-more-secure',
             auth0Domain      : 'my-app.auth0.com',
             auth0PublicKey   : 'some-client-id',
@@ -78,7 +78,7 @@ Tags: `user`, `auth`, `session`, `login`
 
 Begins a user session. If a session is already active, the user will be given the opportunity to log in with a different account.
 
-If the user denies access to a social account, they will be redirected back to the login page so that they may try again, as this usually means they chose the wrong account or provider by accident. All other errors will be returned to the client with a 401 Unauthorized status. You may use [`onPreResponse`](https://hapijs.com/api#error-transformation) or [`hapi-error`](https://www.npmjs.com/package/hapi-error) to make beautiful error pages for them.
+If the user denies access to a social account, they will be redirected back to the login page so that they may try again, as this usually means they chose the wrong account or provider by accident. All other errors will be returned to the client with a 401 Unauthorized status. You may use [`onPreResponse`](https://hapijs.com/api#error-transformation) or [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) to make beautiful HTML pages for them.
 
 ### GET /logout
 
