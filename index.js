@@ -63,10 +63,18 @@ const register = (server, option, done) => {
         handler(request, reply) {
             const { auth } = request;
             if (auth.isAuthenticated) {
-                // credentials also has: .expiresIn, .token, .refreshToken
+                // Credentials also has: .expiresIn, .token, .refreshToken
                 // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
                 // TODO: Perhaps save only user ID and map it to a server-side cache instead.
-                request.cookieAuth.set({ user : auth.credentials.profile });
+                if (auth.credentials.profile.raw.scope) {
+                    request.cookieAuth.set({
+                        user  : auth.credentials.profile,
+                        scope : auth.credentials.profile.raw.scope
+                    });
+                }
+                else {
+                    request.cookieAuth.set({ user : auth.credentials.profile });
+                }
                 reply.redirect(resolveNext(auth.credentials.query));
             }
             // This happens when users deny us access to their OAuth provider.
