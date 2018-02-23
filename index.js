@@ -55,7 +55,15 @@ const register = (server, option) => {
             if (auth.isAuthenticated) {
                 // Credentials also have: .expiresIn, .token, .refreshToken
                 // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
-                request.cookieAuth.set({ user : auth.credentials.profile });
+                if (auth.credentials.profile.raw.scope) {
+                    request.cookieAuth.set({
+                        user  : auth.credentials.profile,
+                        scope : auth.credentials.profile.raw.scope
+                    });
+                }
+                else {
+                    request.cookieAuth.set({ user : auth.credentials.profile });
+                }
                 const { next } = auth.credentials.query;
                 const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
                 if (hasHost(lastNext)) {
