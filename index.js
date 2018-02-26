@@ -39,6 +39,15 @@ const register = (server, option) => {
         forceHttps   : true
     });
 
+    const resolveNext = (query) => {
+        const { next } = query;
+        const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
+        if (hasHost(lastNext)) {
+            throw boom.badRequest('Absolute URLs are not allowed in the `next` parameter for security reasons');
+        }
+        return path.posix.resolve('/', lastNext || '');
+    };
+
     server.route({
         method : 'GET',
         path   : '/login',
@@ -56,12 +65,7 @@ const register = (server, option) => {
                 // Credentials also have: .expiresIn, .token, .refreshToken
                 // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
                 request.cookieAuth.set({ user : auth.credentials.profile });
-                const { next } = auth.credentials.query;
-                const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
-                if (hasHost(lastNext)) {
-                    throw boom.badRequest('Absolute URLs are not allowed in the `next` parameter for security reasons');
-                }
-                return h.redirect(path.posix.resolve('/', lastNext || ''));
+                return h.redirect(resolveNext(auth.credentials.query));
             }
             // This happens when users deny us access to their OAuth provider.
             // Chances are they clicked the wrong social icon.
@@ -84,12 +88,7 @@ const register = (server, option) => {
         },
         handler(request, h) {
             request.cookieAuth.clear();
-            const { next } = request.query;
-            const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
-            if (hasHost(lastNext)) {
-                throw boom.badRequest('Absolute URLs are not allowed in the `next` parameter for security reasons');
-            }
-            return h.redirect(path.posix.resolve('/', lastNext || ''));
+            return h.redirect(resolveNext(request.query));
         }
     });
 };
