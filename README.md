@@ -78,7 +78,7 @@ Tags: `user`, `auth`, `session`, `login`
 
 Begins a user session. If a session is already active, the user will be given the opportunity to log in with a different account.
 
-If the user denies access to a social account, they will be redirected back to the login page so that they may try again, as this usually means they chose the wrong account or provider by accident. All other errors will be returned to the client with a 401 Unauthorized status. You may use [`onPreResponse`](https://hapijs.com/api#error-transformation) or [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) to make beautiful HTML pages for them.
+If the user denies access to a social account, they will be redirected back to the login page so that they may try again, as this usually means they chose the wrong account or provider by accident. All other errors will be returned to the client with a 401 Unauthorized status. You may use [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) or [`onPreResponse`](https://hapijs.com/api#error-transformation) to make beautiful HTML pages for them.
 
 ### GET /logout
 
@@ -92,7 +92,13 @@ Ends a user session. Safe to visit regardless of whether a session is active or 
 
 Type: `object`
 
-Plugin settings. All of these are required.
+Plugin settings.
+
+#### validateFunc
+
+Type: `function`
+
+An optional event handler used to implement business logic for checking and modifying the session on each request. See [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie#hapi-auth-cookie) for details.
 
 #### sessionSecretKey
 
@@ -110,7 +116,7 @@ The domain associated with your Auth0 account.
 
 Type: `string`
 
-The ID for an [Auth0 Client](manage.auth0.com/#/applications).
+The ID for an [Auth0 Client](https://manage.auth0.com/#/applications).
 
 #### auth0SecretKey
 

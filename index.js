@@ -8,6 +8,7 @@ const pkg = require('./package.json');
 
 const register = (server, option) => {
     const config = joi.attempt(option, joi.object().required().keys({
+        validateFunc     : joi.func().optional(),
         sessionSecretKey : joi.string().required().min(32),
         auth0Domain      : joi.string().required().hostname().min(3),
         auth0PublicKey   : joi.string().required().token().min(5),
@@ -15,6 +16,7 @@ const register = (server, option) => {
     }));
 
     server.auth.strategy('session', 'cookie', {
+        validateFunc : config.validateFunc,
         password     : config.sessionSecretKey,
         cookie       : 'sid',
         redirectTo   : '/login',
