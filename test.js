@@ -23,7 +23,7 @@ const mockServer = async (option) => {
                 sessionSecretKey : 'pleasemakethissignificantlymoresecure',
                 auth0Domain      : 'my-app.auth0.com',
                 auth0PublicKey   : 'someclientid',
-                auth0SecretKey   : 'evenmoresecret'
+                auth0SecretKey   : 'evenmoresecretthanthesessionsecretkey'
             }
         }],
         route  : mockRoute(),
