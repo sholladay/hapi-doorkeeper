@@ -2,12 +2,14 @@
 
 > User authentication for web servers
 
+This [hapi](https://hapijs.com) plugin makes it easy to provide login and logout functionality for your users.
+
 ## Why?
 
- - Provides user login & logout routes.
  - User auth is a very common need.
  - User auth is a major source of security problems.
  - Secure systems should be easy to set up and use.
+ - Comes with built-in login and logout routes.
 
 ## Install
 
