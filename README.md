@@ -41,16 +41,16 @@ const init = async () => {
     }]);
     server.route({
         method : 'GET',
-        path   : '/',
+        path   : '/dashboard',
         config : {
             auth : {
                 strategy : 'session',
                 mode     : 'required'
             }
         },
-        handler(request, reply) {
+        handler(request) {
             const { user } = request.auth.credentials;
-            reply(`Hi ${user.name}, you are logged in! Here is the profile from Auth0: <pre>${JSON.stringify(user.raw, null, 4)}</pre> <a href="/logout">Click here to log out</a>`);
+            return `Hi ${user.name}, you are logged in! Here is the profile from Auth0: <pre>${JSON.stringify(user.raw, null, 4)}</pre> <a href="/logout">Click here to log out</a>`;
         }
     });
     await server.start();
@@ -60,7 +60,7 @@ const init = async () => {
 init();
 ```
 
-The route above at `/` can only be accessed by logged in users, as denoted by the `session` strategy being `required`. If you are logged in, it will display your profile, otherwise it will redirect you to a login screen.
+The route above at `/dashboard` can only be accessed by logged in users, as denoted by the `session` strategy being `required`. If you are logged in, it will display your profile, otherwise it will redirect you to a login screen.
 
 Authentication is managed by [Auth0](https://auth0.com/). A few steps are required to finish the integration.
 
@@ -72,7 +72,7 @@ User data is stored using [hapi-auth-cookie](https://github.com/hapijs/hapi-auth
 
 ## Routes
 
-Standard user authentication routes are provided.
+Standard user authentication routes are included and will be added to your server when the plugin is registered.
 
 ### GET /login
 
@@ -90,11 +90,7 @@ Ends a user session. Safe to visit regardless of whether a session is active or 
 
 ## API
 
-### option
-
-Type: `object`
-
-Plugin settings.
+### Plugin options
 
 #### validateFunc
 
@@ -106,7 +102,7 @@ An optional event handler used to implement business logic for checking and modi
 
 Type: `string`
 
-A passphrase used for [Iron](https://github.com/hueniverse/iron) cookie encoding. Should be at least 32 characters long and occasionally rotated.
+A passphrase used to secure session cookies. Should be at least 32 characters long and occasionally rotated. See [Iron](https://github.com/hueniverse/iron) for more details.
 
 #### auth0Domain
 
@@ -124,7 +120,7 @@ The ID for an [Auth0 Client](https://manage.auth0.com/#/applications).
 
 Type: `string`
 
-The secret key for an Auth0 Client.
+The secret key for an [Auth0 Client](https://manage.auth0.com/#/applications).
 
 ## Contributing
 
