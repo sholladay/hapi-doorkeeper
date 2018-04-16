@@ -4,6 +4,18 @@
 
 This [hapi](https://hapijs.com) plugin makes it easy to add a secure login and logout system for your users.
 
+## Contents
+
+ - [Why?](#why)
+ - [Install](#install)
+ - [Usage](#usage)
+ - [API](#api)
+   - [Routes](#routes)
+   - [Plugin options](#plugin-options)
+ - [Related](#related)
+ - [Contributing](#contributing)
+ - [License](#license)
+
 ## Why?
 
  - User auth is a very common need.
@@ -121,6 +133,10 @@ The ID for an [Auth0 Application](https://manage.auth0.com/#/applications).
 Type: `string`
 
 The secret key for an [Auth0 Application](https://manage.auth0.com/#/applications).
+
+## Related
+
+ - [lock](https://github.com/auth0/lock) - UI widget used on the login screen
 
 ## Contributing
 
