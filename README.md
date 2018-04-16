@@ -35,7 +35,7 @@ const init = async () => {
         options : {
             sessionSecretKey : 'please-make-this-much-more-secure',
             auth0Domain      : 'my-app.auth0.com',
-            auth0PublicKey   : 'some-client-id',
+            auth0PublicKey   : 'some-app-id',
             auth0SecretKey   : 'even-more-secret'
         }
     }]);
@@ -65,16 +65,18 @@ The route above at `/dashboard` can only be accessed by logged in users, as deno
 Authentication is managed by [Auth0](https://auth0.com/). A few steps are required to finish the integration.
 
  - [Sign up for Auth0](https://auth0.com/)
- - [Set up an Auth0 Client](https://auth0.com/docs/clients)
- - [Provide Auth0 credentials](#option)
+ - [Set up an Auth0 Application](https://auth0.com/docs/applications/application-types)
+ - [Provide Auth0 credentials](#plugin-options)
 
 User data is stored using [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) as an object with a `user` namespace so that you may store additional data alongside what this project provides, without conflicts. Access it as `request.auth.credentials.user`.
 
-## Routes
+## API
+
+### Routes
 
 Standard user authentication routes are included and will be added to your server when the plugin is registered.
 
-### GET /login
+#### GET /login
 
 Tags: `user`, `auth`, `session`, `login`
 
@@ -82,13 +84,11 @@ Begins a user session. If a session is already active, the user will be given th
 
 If the user denies access to a social account, they will be redirected back to the login page so that they may try again, as this usually means they chose the wrong account or provider by accident. All other errors will be returned to the client with a 401 Unauthorized status. You may use [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) or [`onPreResponse`](https://hapijs.com/api#error-transformation) to make beautiful HTML pages for them.
 
-### GET /logout
+#### GET /logout
 
 Tags: `user`, `auth`, `session`, `logout`
 
 Ends a user session. Safe to visit regardless of whether a session is active or the validity of the user's credentials. The user will be redirected to `/`, the root of the server.
-
-## API
 
 ### Plugin options
 
@@ -114,13 +114,13 @@ The domain associated with your Auth0 account.
 
 Type: `string`
 
-The ID for an [Auth0 Client](https://manage.auth0.com/#/applications).
+The ID for an [Auth0 Application](https://manage.auth0.com/#/applications).
 
 #### auth0SecretKey
 
 Type: `string`
 
-The secret key for an [Auth0 Client](https://manage.auth0.com/#/applications).
+The secret key for an [Auth0 Application](https://manage.auth0.com/#/applications).
 
 ## Contributing
 
