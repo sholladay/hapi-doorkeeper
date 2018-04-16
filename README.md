@@ -2,7 +2,7 @@
 
 > User authentication for web servers
 
-This [hapi](https://hapijs.com) plugin makes it easy to provide login and logout functionality for your users.
+This [hapi](https://hapijs.com) plugin makes it easy to add a secure login and logout system for your users.
 
 ## Why?
 
@@ -64,9 +64,9 @@ The route above at `/dashboard` can only be accessed by logged in users, as deno
 
 Authentication is managed by [Auth0](https://auth0.com/). A few steps are required to finish the integration.
 
- - [Sign up for Auth0](https://auth0.com/)
- - [Set up an Auth0 Application](https://auth0.com/docs/applications/application-types)
- - [Provide Auth0 credentials](#plugin-options)
+ 1. [Sign up for Auth0](https://auth0.com/)
+ 2. [Set up an Auth0 Application](https://auth0.com/docs/applications/application-types)
+ 3. [Provide credentials from Auth0](#plugin-options)
 
 User data is stored using [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) as an object with a `user` namespace so that you may store additional data alongside what this project provides, without conflicts. Access it as `request.auth.credentials.user`.
 
