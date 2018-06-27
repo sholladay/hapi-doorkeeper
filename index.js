@@ -24,7 +24,7 @@ const register = (server, option) => {
         clearInvalid : true,
         isHttpOnly   : true,
         isSecure     : true,
-        isSameSite   : 'Strict'
+        isSameSite   : 'Lax'
     });
 
     server.auth.strategy('auth0', 'bell', {
