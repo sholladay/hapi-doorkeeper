@@ -37,11 +37,11 @@
     },
     "devDependencies": {
         "ava": "^1.0.0-beta.3",
-        "bell": "git@github.com:sholladay/bell.git#c9a641630785d3e5166bdd9d284d50b8acdd0119",
+        "bell": "^9.3.1",
         "eslint-config-tidy": "^0.6.2",
         "hapi": "^17.2.0",
-        "hapi-auth-cookie": "^8.0.0",
-        "xo": "^0.20.3"
+        "hapi-auth-cookie": "^9.0.0",
+        "xo": "^0.21.1"
     },
     "keywords": [
         "hapi",
