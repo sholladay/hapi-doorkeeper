@@ -6,9 +6,16 @@ const joi = require('joi');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
+const defaultParams = (request) => {
+    const { screen } = request.query;
+    const lastScreen = Array.isArray(screen) ? screen[screen.length - 1] : screen;
+    return lastScreen ? { screen : lastScreen } : {};
+};
+
 const register = (server, option) => {
     const config = joi.attempt(option, joi.object().required().keys({
         validateFunc     : joi.func().optional(),
+        providerParams   : joi.func().optional().default(defaultParams),
         sessionSecretKey : joi.string().required().min(32),
         auth0Domain      : joi.string().required().hostname().min(3),
         auth0PublicKey   : joi.string().required().token().min(10),
@@ -32,13 +39,14 @@ const register = (server, option) => {
         config   : {
             domain : config.auth0Domain
         },
-        ttl          : 60 * 60 * 24,
-        password     : config.sessionSecretKey,
-        clientId     : config.auth0PublicKey,
-        clientSecret : config.auth0SecretKey,
-        isHttpOnly   : true,
-        isSecure     : true,
-        forceHttps   : true
+        ttl            : 60 * 60 * 24,
+        password       : config.sessionSecretKey,
+        clientId       : config.auth0PublicKey,
+        clientSecret   : config.auth0SecretKey,
+        isHttpOnly     : true,
+        isSecure       : true,
+        forceHttps     : true,
+        providerParams : config.providerParams
     });
 
     const resolveNext = (query) => {

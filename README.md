@@ -134,6 +134,12 @@ Type: `string`
 
 The secret key for an [Auth0 Application](https://manage.auth0.com/#/applications).
 
+#### providerParams(request)
+
+Allows you to send query parameters to Auth0. Should return an object of key/value pairs that will be serialized to a query string. See the [`providerParams` option](https://github.com/hapijs/bell/blob/master/API.md#options) in `bell`for more details.
+
+By default, we will forward any `screen` parameter passed to `/login`, so that you can have "Login or Sign Up", with individual links that will take the user to the correct screen on the Auth0 Lock widget, avoiding an extra click when the user gets there.
+
 ## Related
 
  - [lock](https://github.com/auth0/lock) - UI widget used on the login screen
