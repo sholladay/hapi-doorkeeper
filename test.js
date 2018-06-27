@@ -111,7 +111,7 @@ test('/logout route', async (t) => {
         url : '/logout'
     });
     t.is(response.statusCode, 302);
-    t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Strict; Path=/');
+    t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
     t.is(response.headers.location, '/');
     t.is(response.payload, '');
 });
