@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 'use strict';
 
 const path = require('path');
@@ -71,40 +72,34 @@ const register = (server, option) => {
             }
         },
         async handler(request, h) {
-
             const { auth } = request;
             const baseUrl = `https://${config.auth0Domain}`;
-
             if (auth.isAuthenticated) {
-            const getToken = async () => {
-                const { body } = await got.post(`${baseUrl}/oauth/token`, {
-                    json : true,
-                    body : {
-                        grant_type    : 'client_credentials',
-                        client_id     : config.auth0PublicKey,
-                        client_secret : config.auth0SecretKey,
-                        audience      : `${baseUrl}/api/v2/`
-                    }
-                });
+                const getToken = async () => {
+                    const { body } = await got.post(`${baseUrl}/oauth/token`, {
+                        json : true,
+                        body : {
+                            grant_type    : 'client_credentials',
+                            client_id     : config.auth0PublicKey,
+                            client_secret : config.auth0SecretKey,
+                            audience      : `${baseUrl}/api/v2/`
+                        }
+                    });
 
-                return body.access_token;
-            };
+                    return body.access_token;
+                };
+                const token = await getToken();
 
-            const token = await getToken();
-
-            const getUsername = async () => {
-                const { body } = await got.get(`${baseUrl}/api/v2/users/${auth.credentials.profile.id}`, {
-                    json : true,
-                    headers : {
-                        authorization : `Bearer ${token}`
-                    },
-                    body : {
-                        fields : 'username'
-                    }
-                })
-                return body.username
-            }
-            const username = await getUsername();
+                const getUsername = async () => {
+                    const { body } = await got.get(`${baseUrl}/api/v2/users/${auth.credentials.profile.id}`, {
+                        json    : true,
+                        headers : {
+                            authorization : `Bearer ${token}`
+                        }
+                    });
+                    return body.username;
+                };
+                const username = await getUsername();
 
                 // Credentials also have: .expiresIn, .token, .refreshToken
                 // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
