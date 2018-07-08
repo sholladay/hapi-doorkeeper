@@ -75,6 +75,7 @@ const register = (server, option) => {
             const { auth } = request;
             const baseUrl = `https://${config.auth0Domain}`;
 
+            if (auth.isAuthenticated) {
             const getToken = async () => {
                 const { body } = await got.post(`${baseUrl}/oauth/token`, {
                     json : true,
@@ -105,7 +106,6 @@ const register = (server, option) => {
             }
             const username = await getUsername();
 
-            if (auth.isAuthenticated) {
                 // Credentials also have: .expiresIn, .token, .refreshToken
                 // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
                 request.cookieAuth.set({
