@@ -6,15 +6,24 @@ const joi = require('joi');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
+const defaultParams = (request) => {
+    const { screen } = request.query;
+    const lastScreen = Array.isArray(screen) ? screen[screen.length - 1] : screen;
+    return lastScreen ? { screen : lastScreen } : {};
+};
+
 const register = (server, option) => {
     const config = joi.attempt(option, joi.object().required().keys({
+        validateFunc     : joi.func().optional(),
+        providerParams   : joi.func().optional().default(defaultParams),
         sessionSecretKey : joi.string().required().min(32),
         auth0Domain      : joi.string().required().hostname().min(3),
-        auth0PublicKey   : joi.string().required().token().min(5),
-        auth0SecretKey   : joi.string().required().token().min(5)
+        auth0PublicKey   : joi.string().required().token().min(10),
+        auth0SecretKey   : joi.string().required().min(30).regex(/^[A-Za-z\d_-]+$/)
     }));
 
     server.auth.strategy('session', 'cookie', {
+        validateFunc : config.validateFunc,
         password     : config.sessionSecretKey,
         cookie       : 'sid',
         redirectTo   : '/login',
@@ -30,14 +39,24 @@ const register = (server, option) => {
         config   : {
             domain : config.auth0Domain
         },
-        ttl          : 60 * 60 * 24,
-        password     : config.sessionSecretKey,
-        clientId     : config.auth0PublicKey,
-        clientSecret : config.auth0SecretKey,
-        isHttpOnly   : true,
-        isSecure     : true,
-        forceHttps   : true
+        ttl            : 60 * 60 * 24,
+        password       : config.sessionSecretKey,
+        clientId       : config.auth0PublicKey,
+        clientSecret   : config.auth0SecretKey,
+        isHttpOnly     : true,
+        isSecure       : true,
+        forceHttps     : true,
+        providerParams : config.providerParams
     });
+
+    const resolveNext = (query) => {
+        const { next } = query;
+        const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
+        if (hasHost(lastNext)) {
+            throw boom.badRequest('Absolute URLs are not allowed in the `next` parameter for security reasons');
+        }
+        return path.posix.resolve('/', lastNext || '');
+    };
 
     server.route({
         method : 'GET',
@@ -55,21 +74,8 @@ const register = (server, option) => {
             if (auth.isAuthenticated) {
                 // Credentials also have: .expiresIn, .token, .refreshToken
                 // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
-                if (auth.credentials.profile.raw.scope) {
-                    request.cookieAuth.set({
-                        user  : auth.credentials.profile,
-                        scope : auth.credentials.profile.raw.scope
-                    });
-                }
-                else {
-                    request.cookieAuth.set({ user : auth.credentials.profile });
-                }
-                const { next } = auth.credentials.query;
-                const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
-                if (hasHost(lastNext)) {
-                    throw boom.badRequest('Absolute URLs are not allowed in the `next` parameter for security reasons');
-                }
-                return h.redirect(path.posix.resolve('/', lastNext || ''));
+                request.cookieAuth.set({ user : auth.credentials.profile });
+                return h.redirect(resolveNext(auth.credentials.query));
             }
             // This happens when users deny us access to their OAuth provider.
             // Chances are they clicked the wrong social icon.
@@ -92,12 +98,7 @@ const register = (server, option) => {
         },
         handler(request, h) {
             request.cookieAuth.clear();
-            const { next } = request.query;
-            const lastNext = Array.isArray(next) ? next[next.length - 1] : next;
-            if (hasHost(lastNext)) {
-                throw boom.badRequest('Absolute URLs are not allowed in the `next` parameter for security reasons');
-            }
-            return h.redirect(path.posix.resolve('/', lastNext || ''));
+            return h.redirect(resolveNext(request.query));
         }
     });
 };

@@ -1,6 +1,6 @@
 {
     "name": "hapi-doorkeeper",
-    "version": "0.4.0",
+    "version": "0.6.1",
     "description": "User authentication for web servers",
     "homepage": "https://github.com/sholladay/hapi-doorkeeper",
     "main": "index.js",
@@ -21,7 +21,7 @@
         "email": "me@seth-holladay.com"
     },
     "engines": {
-        "node": ">=6"
+        "node": ">=8"
     },
     "license": "MPL-2.0",
     "files": [
@@ -36,12 +36,12 @@
         "url-type": "^0.2.1"
     },
     "devDependencies": {
-        "ava": "^0.24.0",
-        "bell": "git@github.com:rapoell/bell.git#5e21300fa461a122c884031703a607594fbbe39e",
+        "ava": "^1.0.0-beta.3",
+        "bell": "^9.3.1",
         "eslint-config-tidy": "^0.6.2",
         "hapi": "^17.2.0",
-        "hapi-auth-cookie": "^8.0.0",
-        "xo": "git@github.com:sindresorhus/xo.git#7c77af3cc036bf488f0b5b87e37fad9913e1a5f5"
+        "hapi-auth-cookie": "^9.0.0",
+        "xo": "^0.21.1"
     },
     "keywords": [
         "hapi",
