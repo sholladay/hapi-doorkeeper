@@ -70,7 +70,7 @@ const register = (server, option) => {
                 mode     : 'try'
             }
         },
-        handler(request, h) {
+        async handler(request, h) {
 
             const { auth } = request;
             const baseUrl = `https://${config.auth0Domain}`;
