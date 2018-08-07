@@ -98,7 +98,7 @@ const register = (server, option) => {
         },
         handler(request, h) {
             request.cookieAuth.clear();
-            return h.redirect(resolveNext(request.query));
+            return h.redirect(`https://${config.auth0Domain}/v2/logout?returnTo=${encodeURI(request.server.info.uri + resolveNext(request.query))}`);
         }
     });
 };
