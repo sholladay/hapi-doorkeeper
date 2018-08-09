@@ -2,7 +2,7 @@
 
 > User authentication for web servers
 
-This [hapi](https://hapijs.com) plugin makes it easy to add a secure login and logout system for your users.
+This [hapi](https://hapijs.com) plugin makes it easy to add a secure login and logout system for your users by integrating [Auth0](https://auth0.com/).
 
 ## Contents
 
@@ -18,8 +18,8 @@ This [hapi](https://hapijs.com) plugin makes it easy to add a secure login and l
 
 ## Why?
 
- - User auth is a very common need.
- - User auth is a major source of security problems.
+ - User auth is a necessity for most apps and websites.
+ - User auth is difficult to do correctly on your own.
  - Secure systems should be easy to set up and use.
  - Comes with built-in login and logout routes.
 
@@ -45,10 +45,10 @@ const init = async () => {
     await server.register([bell, cookie, {
         plugin  : doorkeeper,
         options : {
-            sessionSecretKey : 'please-make-this-much-more-secure',
-            auth0Domain      : 'my-app.auth0.com',
-            auth0PublicKey   : 'some-app-id',
-            auth0SecretKey   : 'even-more-secret'
+            sessionSecretKey : process.env.SESSION_SECRET_KEY,
+            auth0Domain      : process.env.AUTH0_DOMAIN,
+            auth0PublicKey   : process.env.AUTH0_PUBLIC_KEY,
+            auth0SecretKey   : process.env.AUTH0_SECRET_KEY
         }
     }]);
     server.route({
@@ -80,7 +80,9 @@ Authentication is managed by [Auth0](https://auth0.com/). A few steps are requir
  2. [Set up an Auth0 Application](https://auth0.com/docs/applications/application-types)
  3. [Provide credentials from Auth0](#plugin-options)
 
-User data is stored using [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) as an object with a `user` namespace so that you may store additional data alongside what this project provides, without conflicts. Access it as `request.auth.credentials.user`.
+After a user logs in, a session cookie is created for them so that the server has a way to remember the user on future requests. The cookie is stateless, encrypted, and secured using flags such as `HttpOnly`. The user's profile is automatically retrieved from Auth0 and stored in the session when they log in. You can access the profile data at `request.auth.credentials.user`. See [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) and [iron](https://github.com/hueniverse/iron) for details about the cookie implementation and security.
+
+Note that your server must support HTTPS for everything to work properly. If you need help with that, see this [How To Guide](https://medium.freecodecamp.org/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec)
 
 ## API
 
@@ -96,53 +98,59 @@ Begins a user session. If a session is already active, the user will be given th
 
 If the user denies access to a social account, they will be redirected back to the login page so that they may try again, as this usually means they chose the wrong account or provider by accident. All other errors will be returned to the client with a 401 Unauthorized status. You may use [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) or [`onPreResponse`](https://hapijs.com/api#error-transformation) to make beautiful HTML pages for them.
 
+After logging in, the user will be redirected to `/`, the root of the server. To redirect to a different page, send a relative URL in the `next` query parameter (e.g. `GET /login?next=help`).
+
 #### GET /logout
 
 Tags: `user`, `auth`, `session`, `logout`
 
-Ends a user session. Safe to visit regardless of whether a session is active or the validity of the user's credentials. The user will be redirected to `/`, the root of the server.
+Ends a user session. Safe to visit regardless of whether a session is active or the validity of the user's credentials. After logging out, the user will be redirected to `/`, the root of the server.
 
 ### Plugin options
-
-#### validateFunc
-
-Type: `function`
-
-An optional event handler used to implement business logic for checking and modifying the session on each request. See [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie#hapi-auth-cookie) for details.
 
 #### sessionSecretKey
 
 Type: `string`
 
-A passphrase used to secure session cookies. Should be at least 32 characters long and occasionally rotated. See [Iron](https://github.com/hueniverse/iron) for more details.
+A passphrase used to secure session cookies. Should be at least 32 characters long and occasionally rotated. See [Iron](https://github.com/hueniverse/iron) for details.
 
 #### auth0Domain
 
 Type: `string`
 
-The domain associated with your Auth0 account.
+The domain used to log in to Auth0. This should be the domain of your tenant (e.g. `my-company.auth0.com`) or your own [custom domain](https://auth0.com/docs/custom-domains) (e.g. `auth.my-company.com`).
 
 #### auth0PublicKey
 
 Type: `string`
 
-The ID for an [Auth0 Application](https://manage.auth0.com/#/applications).
+The ID of your [Auth0 Application](https://manage.auth0.com/#/applications), sometimes referred to as the Client ID.
 
 #### auth0SecretKey
 
 Type: `string`
 
-The secret key for an [Auth0 Application](https://manage.auth0.com/#/applications).
+The secret key of your [Auth0 Application](https://manage.auth0.com/#/applications), sometimes referred to as the Client Secret.
 
 #### providerParams(request)
 
-Allows you to send query parameters to Auth0. Should return an object of key/value pairs that will be serialized to a query string. See the [`providerParams` option](https://github.com/hapijs/bell/blob/master/API.md#options) in `bell`for more details.
+Type: `function`
 
-By default, we will forward any `screen` parameter passed to `/login`, so that you can have "Login or Sign Up", with individual links that will take the user to the correct screen on the Auth0 Lock widget, avoiding an extra click when the user gets there.
+An optional event handler where you can decide which query parameters to send to Auth0. Should return an object of key/value pairs that will be serialized to a query string. See the [`providerParams` option](https://github.com/hapijs/bell/blob/master/API.md#options) in [bell](https://github.com/hapijs/bell) for details.
+
+By default, we forward any `screen` parameter passed to `/login`, so that you can implement "Log In" and "Sign Up" buttons that go to the correct screen. To set this up, modify your [Hosted Login Page](https://auth0.com/docs/hosted-pages/login#how-to-customize-your-login-page) and set Lock's [`initialScreen`](https://auth0.com/docs/libraries/lock/v11/configuration#initialscreen-string-) option to use the value of `config.extraParams.screen`. After that, visiting `/login?screen=signUp` will show the Sign Up screen instead of the Log In screen.
+
+#### validateFunc(request, session)
+
+Type: `function`
+
+An optional event handler where you can put business logic to check and modify the session on each request. See the [`validateFunc` option](https://github.com/hapijs/hapi-auth-cookie#hapi-auth-cookie) in [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) for details.
+
+This is a good place to set [authorization scopes for users](https://futurestud.io/tutorials/hapi-restrict-user-access-with-scopes), if you need to restrict access to some routes for certain users.
 
 ## Related
 
- - [lock](https://github.com/auth0/lock) - UI widget used on the login screen
+ - [lock](https://github.com/auth0/lock) - UI widget used on the login page
 
 ## Contributing
 
