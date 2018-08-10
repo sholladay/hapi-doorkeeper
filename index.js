@@ -15,6 +15,7 @@ const defaultParams = (request) => {
 const register = (server, option) => {
     const config = joi.attempt(option, joi.object().required().keys({
         validateFunc     : joi.func().optional(),
+        redirectTo       : joi.func().optional(),
         providerParams   : joi.func().optional().default(defaultParams),
         sessionSecretKey : joi.string().required().min(32),
         auth0Domain      : joi.string().required().hostname().min(3),
@@ -26,7 +27,7 @@ const register = (server, option) => {
         validateFunc : config.validateFunc,
         password     : config.sessionSecretKey,
         cookie       : 'sid',
-        redirectTo   : '/login',
+        redirectTo   : config.redirectTo || '/login',
         appendNext   : true,
         clearInvalid : true,
         isHttpOnly   : true,
