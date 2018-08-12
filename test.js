@@ -4,7 +4,7 @@ import cookie from 'hapi-auth-cookie';
 import bell from 'bell';
 import doorkeeper from '.';
 
-const mockRoute = (option) => {
+const makeRoute = (option) => {
     return {
         method : 'GET',
         path   : '/',
@@ -15,8 +15,8 @@ const mockRoute = (option) => {
     };
 };
 
-const mockServer = async (option) => {
-    const { plugin, route } = {
+const makeServer = async (option) => {
+    const { plugin } = {
         plugin : [cookie, bell, {
             plugin  : doorkeeper,
             options : {
@@ -26,74 +26,57 @@ const mockServer = async (option) => {
                 auth0SecretKey   : 'evenmoresecretthanthesessionsecretkey'
             }
         }],
-        route  : mockRoute(),
         ...option
     };
     const server = hapi.server();
     if (plugin) {
         await server.register(plugin);
     }
-    if (route) {
-        server.route(route);
-    }
     return server;
 };
 
-const mockRequest = (server, option) => {
-    return server.inject({
-        method : 'GET',
-        url    : '/',
-        ...option
-    });
-};
-
 test('without doorkeeper', async (t) => {
-    const server = await mockServer({
-        plugin : null
-    });
-    const response = await mockRequest(server);
+    const server = await makeServer({ plugin : null });
+    server.route(makeRoute());
+    const response = await server.inject({ url : '/' });
     t.is(response.statusCode, 200);
     t.is(response.payload, 'foo');
 });
 
 test('missing options', async (t) => {
-    const err = await t.throws(mockServer({
+    const err = await t.throws(makeServer({
         plugin : [cookie, bell, doorkeeper]
     }));
     t.regex(err.message, /required/);
 });
 
 test('default auth', async (t) => {
-    const server = await mockServer();
-    const response = await mockRequest(server);
+    const server = await makeServer();
+    server.route(makeRoute());
+    const response = await server.inject({ url : '/' });
     t.is(response.statusCode, 200);
     t.is(response.payload, 'foo');
 });
 
 test('required auth', async (t) => {
-    const server = await mockServer({
-        route : mockRoute({
-            config : {
-                auth : {
-                    strategy : 'session',
-                    mode     : 'required'
-                }
+    const server = await makeServer();
+    server.route(makeRoute({
+        config : {
+            auth : {
+                strategy : 'session',
+                mode     : 'required'
             }
-        })
-    });
-    const response = await mockRequest(server);
+        }
+    }));
+    const response = await server.inject({ url : '/' });
     t.is(response.statusCode, 302);
     t.is(response.headers.location, '/login?next=' + encodeURIComponent('/'));
     t.is(response.payload, 'You are being redirected...');
 });
 
 test('/login route', async (t) => {
-    const server = await mockServer({
-        route : null
-    });
-    const response = await mockRequest(server, {
-        url : '/login'
-    });
+    const server = await makeServer();
+    const response = await server.inject({ url : '/login' });
 
     t.is(response.statusCode, 302);
     t.true(response.headers['set-cookie'][0].startsWith('bell-auth0='));
@@ -104,12 +87,8 @@ test('/login route', async (t) => {
 });
 
 test('/logout route', async (t) => {
-    const server = await mockServer({
-        route : null
-    });
-    const response = await mockRequest(server, {
-        url : '/logout'
-    });
+    const server = await makeServer();
+    const response = await server.inject({ url : '/logout' });
     t.is(response.statusCode, 302);
     t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
     t.is(response.headers.location, '/');
@@ -117,56 +96,38 @@ test('/logout route', async (t) => {
 });
 
 test('/logout redirects to next', async (t) => {
-    const server = await mockServer({
-        route : null
-    });
-    const bare = await mockRequest(server, {
-        url : '/logout?next=bah'
-    });
+    const server = await makeServer();
+    const bare = await server.inject({ url : '/logout?next=bah' });
     t.is(bare.statusCode, 302);
     t.is(bare.headers.location, '/bah');
     t.is(bare.payload, '');
 
-    const slash = await mockRequest(server, {
-        url : '/logout?next=/bah'
-    });
+    const slash = await server.inject({ url : '/logout?next=/bah' });
     t.is(slash.statusCode, 302);
     t.is(slash.headers.location, '/bah');
     t.is(slash.payload, '');
 
-    const encodedSlash = await mockRequest(server, {
-        url : '/logout?next=' + encodeURIComponent('/bah')
-    });
-    t.is(encodedSlash.statusCode, 302);
-    t.is(encodedSlash.headers.location, '/bah');
-    t.is(encodedSlash.payload, '');
+    const encoded = await server.inject({ url : '/logout?next=' + encodeURIComponent('/bah') });
+    t.is(encoded.statusCode, 302);
+    t.is(encoded.headers.location, '/bah');
+    t.is(encoded.payload, '');
 });
 
 test('/logout rejects absolute next', async (t) => {
-    const server = await mockServer({
-        route : null
-    });
-    const absolute = await mockRequest(server, {
-        url : '/logout?next=http://example.com/bah'
-    });
+    const server = await makeServer();
+    const absolute = await server.inject({ url : '/logout?next=http://example.com/bah' });
     t.is(absolute.statusCode, 400);
     t.is(JSON.parse(absolute.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const encodedAbsolute = await mockRequest(server, {
-        url : '/logout?next=' + encodeURIComponent('http://example.com/bah')
-    });
+    const encodedAbsolute = await server.inject({ url : '/logout?next=' + encodeURIComponent('http://example.com/bah') });
     t.is(encodedAbsolute.statusCode, 400);
     t.is(JSON.parse(encodedAbsolute.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const schemeless = await mockRequest(server, {
-        url : '/logout?next=//example.com/bah'
-    });
+    const schemeless = await server.inject({ url : '/logout?next=//example.com/bah' });
     t.is(schemeless.statusCode, 400);
     t.is(JSON.parse(schemeless.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const encodedSchemeless = await mockRequest(server, {
-        url : '/logout?next=' + encodeURIComponent('//example.com/bah')
-    });
+    const encodedSchemeless = await server.inject({ url : '/logout?next=' + encodeURIComponent('//example.com/bah') });
     t.is(encodedSchemeless.statusCode, 400);
     t.is(JSON.parse(encodedSchemeless.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 });
