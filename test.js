@@ -88,7 +88,7 @@ test('honors media type header', async (t) => {
         }
     }));
     const response = await server.inject({
-        url : '/',
+        url     : '/',
         headers : {
             accept : 'text/html;q=0.9, application/json'
         }

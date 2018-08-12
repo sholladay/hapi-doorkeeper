@@ -2,7 +2,7 @@
 
 > User authentication for web servers
 
-This [hapi](https://hapijs.com) plugin makes it easy to add a secure login and logout system for your users by integrating [Auth0](https://auth0.com/).
+This [hapi](https://hapijs.com) plugin adds a secure login and logout system to your app by integrating [Auth0](https://auth0.com/).
 
 ## Contents
 
@@ -31,7 +31,7 @@ npm install hapi-doorkeeper --save
 
 ## Usage
 
-Register the plugin on your server to provide the user auth routes.
+Register the plugin on your server to add the `/login` and `/logout` routes, as well as the `session` strategy so that you can protect your app's routes with authentication.
 
 ```js
 const hapi = require('hapi');
@@ -72,7 +72,7 @@ const init = async () => {
 init();
 ```
 
-The route above at `/dashboard` can only be accessed by logged in users, as denoted by the `session` strategy being `required`. If you are logged in, it will display your profile, otherwise it will redirect you to a login screen.
+In the example above, only logged in users are able to access `/dashboard`, as denoted by the `session` strategy being `required`. If you are logged in, it will display your profile, otherwise it will redirect you to a login screen and after you log in it will redirect you back to `/dashboard`.
 
 Authentication is managed by [Auth0](https://auth0.com/). A few steps are required to finish the integration.
 
@@ -80,15 +80,17 @@ Authentication is managed by [Auth0](https://auth0.com/). A few steps are requir
  2. [Set up an Auth0 Application](https://auth0.com/docs/applications/application-types)
  3. [Provide credentials from Auth0](#plugin-options)
 
-After a user logs in, a session cookie is created for them so that the server has a way to remember the user on future requests. The cookie is stateless, encrypted, and secured using flags such as `HttpOnly`. The user's profile is automatically retrieved from Auth0 and stored in the session when they log in. You can access the profile data at `request.auth.credentials.user`. See [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) and [iron](https://github.com/hueniverse/iron) for details about the cookie implementation and security.
+After users log in, a session cookie is created for them so that the server remembers them on future requests. The cookie is stateless, encrypted, and secured using flags such as `HttpOnly`. The user's [Auth0 profile](https://auth0.com/docs/user-profile/normalized/oidc) is automatically retrieved and stored in the session when they log in. You can access the profile data at `request.auth.credentials.user`. See [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) and [iron](https://github.com/hueniverse/iron) for details about the cookie implementation and security.
 
-Note that your server must support HTTPS for everything to work properly. If you need help with that, see this [How To Guide](https://medium.freecodecamp.org/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec)
+Note that your server must support HTTPS for everything to work properly. If you need help with that, see this [How To Guide](https://medium.freecodecamp.org/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec).
+
+APIs can also be protected by the `session` strategy. Clients can send an [Accept](https://tools.ietf.org/html/rfc7231#section-5.3.2) header with a value of `application/json` to indicate that they would prefer a JSON error instead of a redirect to the login page for users who are not logged in. The client can use this to show an error message or redirect the user manually, as appropriate.
 
 ## API
 
 ### Routes
 
-Standard user authentication routes are included and will be added to your server when the plugin is registered.
+Standard user authentication routes are added to your server when the plugin is registered.
 
 #### GET /login
 
@@ -96,15 +98,21 @@ Tags: `user`, `auth`, `session`, `login`
 
 Begins a user session. If a session is already active, the user will be given the opportunity to log in with a different account.
 
-If the user denies access to a social account, they will be redirected back to the login page so that they may try again, as this usually means they chose the wrong account or provider by accident. All other errors will be returned to the client with a 401 Unauthorized status. You may use [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) or [`onPreResponse`](https://hapijs.com/api#error-transformation) to make beautiful HTML pages for them.
+If users deny access to a [social](https://auth0.com/docs/identityproviders) account, they will be redirected back to the login page so that they may try again, because they probably clicked the wrong account or provider by accident. Other login errors will be returned to the client with a 401 Unauthorized status. You may use [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) or [`onPreResponse`](https://hapijs.com/api#error-transformation) to display beautiful HTML pages for them.
 
-After logging in, the user will be redirected to `/`, the root of the server. To redirect to a different page, send a relative URL in the `next` query parameter (e.g. `GET /login?next=help`).
+After logging in, users are redirected to the URL specified in the `next` query parameter, which defaults to `/`, the root of the server.
+
+As an example, the login button on your FAQ page might look be written as `<a href="/login?next=/faq">Log in</a>`.
+
+Only relative URLs are allowed in `next` for security reasons.
+
+Routes that use the `session` strategy to require login have the `next` parameter set automatically for them, so that users are always sent back to the correct place.
 
 #### GET /logout
 
 Tags: `user`, `auth`, `session`, `logout`
 
-Ends a user session. Safe to visit regardless of whether a session is active or the validity of the user's credentials. After logging out, the user will be redirected to `/`, the root of the server.
+Ends a user session. Safe to visit regardless of whether a session is active or the validity of the user's credentials. After logging out, users will be redirected to the URL specified in the `next` query parameter, which defaults to `/` (see [`/login`](#get-login) for details).
 
 ### Plugin options
 
