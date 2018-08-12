@@ -77,6 +77,28 @@ test('required auth', async (t) => {
     t.is(response.payload, 'You are being redirected...');
 });
 
+test('honors media type header', async (t) => {
+    const server = await makeServer();
+    server.route(makeRoute({
+        config : {
+            auth : {
+                strategy : 'session',
+                mode     : 'required'
+            }
+        }
+    }));
+    const response = await server.inject({
+        url : '/',
+        headers : {
+            accept : 'text/html;q=0.9, application/json'
+        }
+    });
+    t.is(response.statusCode, 401);
+    t.is(response.statusMessage, 'Unauthorized');
+    t.is(response.headers['content-type'], 'application/json; charset=utf-8');
+    t.is(JSON.parse(response.payload).message, 'Missing authentication');
+});
+
 test('/login route', async (t) => {
     const server = await makeServer();
     const response = await server.inject({ url : '/login' });
