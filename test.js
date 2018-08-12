@@ -40,6 +40,7 @@ test('without doorkeeper', async (t) => {
     server.route(makeRoute());
     const response = await server.inject({ url : '/' });
     t.is(response.statusCode, 200);
+    t.is(response.headers['content-type'], 'text/html; charset=utf-8');
     t.is(response.payload, 'foo');
 });
 
@@ -55,6 +56,7 @@ test('default auth', async (t) => {
     server.route(makeRoute());
     const response = await server.inject({ url : '/' });
     t.is(response.statusCode, 200);
+    t.is(response.headers['content-type'], 'text/html; charset=utf-8');
     t.is(response.payload, 'foo');
 });
 
@@ -70,6 +72,7 @@ test('required auth', async (t) => {
     }));
     const response = await server.inject({ url : '/' });
     t.is(response.statusCode, 302);
+    t.is(response.headers['content-type'], 'text/html; charset=utf-8');
     t.is(response.headers.location, '/login?next=' + encodeURIComponent('/'));
     t.is(response.payload, 'You are being redirected...');
 });
@@ -117,17 +120,21 @@ test('/logout rejects absolute next', async (t) => {
     const server = await makeServer();
     const absolute = await server.inject({ url : '/logout?next=http://example.com/bah' });
     t.is(absolute.statusCode, 400);
+    t.is(absolute.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(absolute.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
     const encodedAbsolute = await server.inject({ url : '/logout?next=' + encodeURIComponent('http://example.com/bah') });
     t.is(encodedAbsolute.statusCode, 400);
+    t.is(encodedAbsolute.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(encodedAbsolute.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
     const schemeless = await server.inject({ url : '/logout?next=//example.com/bah' });
     t.is(schemeless.statusCode, 400);
+    t.is(schemeless.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(schemeless.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
     const encodedSchemeless = await server.inject({ url : '/logout?next=' + encodeURIComponent('//example.com/bah') });
     t.is(encodedSchemeless.statusCode, 400);
+    t.is(encodedSchemeless.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(encodedSchemeless.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 });
