@@ -37,12 +37,12 @@
         "url-type": "^0.2.1"
     },
     "devDependencies": {
-        "ava": "^1.0.0-beta.3",
+        "ava": "^1.0.0-beta.7",
         "bell": "^9.3.1",
         "eslint-config-tidy": "^0.6.2",
         "hapi": "^17.2.0",
         "hapi-auth-cookie": "^9.0.0",
-        "xo": "^0.21.1"
+        "xo": "^0.22.0"
     },
     "keywords": [
         "hapi",

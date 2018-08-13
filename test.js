@@ -45,7 +45,7 @@ test('without doorkeeper', async (t) => {
 });
 
 test('missing options', async (t) => {
-    const err = await t.throws(makeServer({
+    const err = await t.throwsAsync(makeServer({
         plugin : [cookie, bell, doorkeeper]
     }));
     t.regex(err.message, /required/);
