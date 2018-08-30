@@ -104,7 +104,9 @@ test('/login route', async (t) => {
     const response = await server.inject({ url : '/login' });
 
     t.is(response.statusCode, 302);
+    t.is(response.headers['set-cookie'].length, 1);
     t.true(response.headers['set-cookie'][0].startsWith('bell-auth0='));
+    t.true(response.headers['set-cookie'][0].includes('; Max-Age=86400; Expires='));
     t.true(response.headers['set-cookie'][0].endsWith('; Secure; HttpOnly; SameSite=Strict; Path=/'));
     t.true(response.headers.location.startsWith('https://my-app.auth0.com/authorize?client_id=someclientid&response_type=code&redirect_uri=https%3A%2F%2F'));
     t.true(response.headers.location.includes('%2Flogin&state='));

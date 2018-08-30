@@ -45,7 +45,7 @@ const register = (server, option) => {
         config   : {
             domain : config.auth0Domain
         },
-        ttl            : 60 * 60 * 24,
+        ttl            : 1000 * 60 * 60 * 24,
         password       : config.sessionSecretKey,
         clientId       : config.auth0PublicKey,
         clientSecret   : config.auth0SecretKey,
