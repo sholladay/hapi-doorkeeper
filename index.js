@@ -15,7 +15,7 @@ const defaultParams = (request) => {
 
 const redirectTo = ({ headers }) => {
     const [favoriteType] = accept.mediaTypes(headers.accept);
-    return !['application/json', 'application/*'].includes(favoriteType) && '/login';
+    return ['text/html', 'text/*'].includes(favoriteType) && '/login';
 };
 
 const register = (server, option) => {
