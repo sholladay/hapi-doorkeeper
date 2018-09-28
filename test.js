@@ -38,7 +38,7 @@ const makeServer = async (option) => {
 test('without doorkeeper', async (t) => {
     const server = await makeServer({ plugin : null });
     server.route(makeRoute());
-    const response = await server.inject({ url : '/' });
+    const response = await server.inject('/');
     t.is(response.statusCode, 200);
     t.is(response.headers['content-type'], 'text/html; charset=utf-8');
     t.is(response.payload, 'foo');
@@ -54,7 +54,7 @@ test('missing options', async (t) => {
 test('default auth', async (t) => {
     const server = await makeServer();
     server.route(makeRoute());
-    const response = await server.inject({ url : '/' });
+    const response = await server.inject('/');
     t.is(response.statusCode, 200);
     t.is(response.headers['content-type'], 'text/html; charset=utf-8');
     t.is(response.payload, 'foo');
@@ -70,14 +70,14 @@ test('required auth', async (t) => {
             }
         }
     }));
-    const response = await server.inject({ url : '/' });
+    const response = await server.inject('/');
     t.is(response.statusCode, 302);
     t.is(response.headers['content-type'], 'text/html; charset=utf-8');
     t.is(response.headers.location, '/login?next=' + encodeURIComponent('/'));
     t.is(response.payload, 'You are being redirected...');
 });
 
-test('honors media type header', async (t) => {
+test('honors accept header', async (t) => {
     const server = await makeServer();
     server.route(makeRoute({
         config : {
@@ -101,7 +101,7 @@ test('honors media type header', async (t) => {
 
 test('/login route', async (t) => {
     const server = await makeServer();
-    const response = await server.inject({ url : '/login' });
+    const response = await server.inject('/login');
 
     t.is(response.statusCode, 302);
     t.is(response.headers['set-cookie'].length, 1);
@@ -115,7 +115,7 @@ test('/login route', async (t) => {
 
 test('/logout route', async (t) => {
     const server = await makeServer();
-    const response = await server.inject({ url : '/logout' });
+    const response = await server.inject('/logout');
     t.is(response.statusCode, 302);
     t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
     t.is(response.headers.location, '/');
@@ -124,17 +124,17 @@ test('/logout route', async (t) => {
 
 test('/logout redirects to next', async (t) => {
     const server = await makeServer();
-    const bare = await server.inject({ url : '/logout?next=bah' });
+    const bare = await server.inject('/logout?next=bah');
     t.is(bare.statusCode, 302);
     t.is(bare.headers.location, '/bah');
     t.is(bare.payload, '');
 
-    const slash = await server.inject({ url : '/logout?next=/bah' });
+    const slash = await server.inject('/logout?next=/bah');
     t.is(slash.statusCode, 302);
     t.is(slash.headers.location, '/bah');
     t.is(slash.payload, '');
 
-    const encoded = await server.inject({ url : '/logout?next=' + encodeURIComponent('/bah') });
+    const encoded = await server.inject('/logout?next=' + encodeURIComponent('/bah'));
     t.is(encoded.statusCode, 302);
     t.is(encoded.headers.location, '/bah');
     t.is(encoded.payload, '');
@@ -142,22 +142,22 @@ test('/logout redirects to next', async (t) => {
 
 test('/logout rejects absolute next', async (t) => {
     const server = await makeServer();
-    const absolute = await server.inject({ url : '/logout?next=http://example.com/bah' });
+    const absolute = await server.inject('/logout?next=http://example.com/bah');
     t.is(absolute.statusCode, 400);
     t.is(absolute.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(absolute.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const encodedAbsolute = await server.inject({ url : '/logout?next=' + encodeURIComponent('http://example.com/bah') });
+    const encodedAbsolute = await server.inject('/logout?next=' + encodeURIComponent('http://example.com/bah'));
     t.is(encodedAbsolute.statusCode, 400);
     t.is(encodedAbsolute.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(encodedAbsolute.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const schemeless = await server.inject({ url : '/logout?next=//example.com/bah' });
+    const schemeless = await server.inject('/logout?next=//example.com/bah');
     t.is(schemeless.statusCode, 400);
     t.is(schemeless.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(schemeless.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const encodedSchemeless = await server.inject({ url : '/logout?next=' + encodeURIComponent('//example.com/bah') });
+    const encodedSchemeless = await server.inject('/logout?next=' + encodeURIComponent('//example.com/bah'));
     t.is(encodedSchemeless.statusCode, 400);
     t.is(encodedSchemeless.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(encodedSchemeless.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
