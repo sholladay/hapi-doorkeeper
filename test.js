@@ -147,7 +147,7 @@ test('/logout route', async (t) => {
     t.is(response.statusCode, 302);
     t.is(response.statusMessage, 'Found');
     t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
-    t.is(response.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/')}`);
+    t.is(response.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/')}`);
     t.is(response.payload, '');
 });
 
@@ -155,16 +155,16 @@ test('/logout redirects to next', async (t) => {
     const server = await makeServer();
     const bare = await server.inject('/logout?next=bah');
     t.is(bare.statusCode, 302);
-    t.is(bare.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
+    t.is(bare.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah')}`);
 
     const slash = await server.inject('/logout?next=/bah');
     t.is(slash.statusCode, 302);
-    t.is(slash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
+    t.is(slash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah')}`);
     t.is(slash.payload, '');
 
     const encodedSlash = await server.inject('/logout?next=' + encodeURIComponent('/bah'));
     t.is(encodedSlash.statusCode, 302);
-    t.is(encodedSlash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
+    t.is(encodedSlash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah')}`);
     t.is(encodedSlash.payload, '');
 });
 
