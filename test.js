@@ -45,7 +45,7 @@ test('without doorkeeper', async (t) => {
 });
 
 test('missing options', async (t) => {
-    const err = await t.throwsAsync(mockServer({
+    const err = await t.throwsAsync(makeServer({
         plugin : [cookie, bell, doorkeeper]
     }));
     t.regex(err.message, /required/u);
@@ -162,9 +162,7 @@ test('/logout redirects to next', async (t) => {
     t.is(slash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
     t.is(slash.payload, '');
 
-    const encodedSlash = await mockRequest(server, {
-        url : '/logout?next=' + encodeURIComponent('/bah')
-    });
+    const encodedSlash = await server.inject('/logout?next=' + encodeURIComponent('/bah'));
     t.is(encodedSlash.statusCode, 302);
     t.is(encodedSlash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
     t.is(encodedSlash.payload, '');
