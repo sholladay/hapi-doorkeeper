@@ -1,4 +1,4 @@
-# hapi-doorkeeper [![Build status for hapi Doorkeeper](https://img.shields.io/circleci/project/sholladay/hapi-doorkeeper/master.svg "Build Status")](https://circleci.com/gh/sholladay/hapi-doorkeeper "Builds")
+# hapi-doorkeeper [![Build status for hapi Doorkeeper](https://travis-ci.com/sholladay/hapi-doorkeeper.svg?branch=master "Build Status")](https://travis-ci.com/sholladay/hapi-doorkeeper "Builds")
 
 > User authentication for web servers
 
