@@ -112,7 +112,7 @@ test('/logout route', async (t) => {
     });
     t.is(response.statusCode, 302);
     t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
-    t.is(response.headers.location, '/');
+    t.is(response.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/')}`);
     t.is(response.payload, '');
 });
 
@@ -124,21 +124,20 @@ test('/logout redirects to next', async (t) => {
         url : '/logout?next=bah'
     });
     t.is(bare.statusCode, 302);
-    t.is(bare.headers.location, '/bah');
-    t.is(bare.payload, '');
+    t.is(bare.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
 
     const slash = await mockRequest(server, {
         url : '/logout?next=/bah'
     });
     t.is(slash.statusCode, 302);
-    t.is(slash.headers.location, '/bah');
+    t.is(slash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
     t.is(slash.payload, '');
 
     const encodedSlash = await mockRequest(server, {
         url : '/logout?next=' + encodeURIComponent('/bah')
     });
     t.is(encodedSlash.statusCode, 302);
-    t.is(encodedSlash.headers.location, '/bah');
+    t.is(encodedSlash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
     t.is(encodedSlash.payload, '');
 });
 
