@@ -1,6 +1,6 @@
 {
     "name": "hapi-doorkeeper",
-    "version": "0.6.1",
+    "version": "0.7.0",
     "description": "User authentication for web servers",
     "homepage": "https://github.com/sholladay/hapi-doorkeeper",
     "main": "index.js",
@@ -31,12 +31,13 @@
         "hapi": ">=17"
     },
     "dependencies": {
+        "accept": "^3.0.2",
         "boom": "^7.1.1",
         "joi": "^14.3.1",
         "url-type": "^0.2.1"
     },
     "devDependencies": {
-        "ava": "^1.0.0-beta.3",
+        "ava": "^1.0.0-beta.7",
         "bell": "^9.3.1",
         "eslint-config-tidy": "^0.7.0",
         "hapi": "^17.2.0",

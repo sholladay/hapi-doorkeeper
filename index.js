@@ -2,6 +2,7 @@
 
 const path = require('path');
 const boom = require('boom');
+const accept = require('accept');
 const joi = require('joi');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
@@ -10,6 +11,11 @@ const defaultParams = (request) => {
     const { screen } = request.query;
     const lastScreen = Array.isArray(screen) ? screen[screen.length - 1] : screen;
     return lastScreen ? { screen : lastScreen } : {};
+};
+
+const redirectTo = ({ headers }) => {
+    const [favoriteType] = accept.mediaTypes(headers.accept);
+    return ['text/html', 'text/*'].includes(favoriteType) && '/login';
 };
 
 const register = (server, option) => {
@@ -26,7 +32,7 @@ const register = (server, option) => {
         validateFunc : config.validateFunc,
         password     : config.sessionSecretKey,
         cookie       : 'sid',
-        redirectTo   : '/login',
+        redirectTo,
         appendNext   : true,
         clearInvalid : true,
         isHttpOnly   : true,
@@ -39,7 +45,7 @@ const register = (server, option) => {
         config   : {
             domain : config.auth0Domain
         },
-        ttl            : 60 * 60 * 24,
+        ttl            : 1000 * 60 * 60 * 24,
         password       : config.sessionSecretKey,
         clientId       : config.auth0PublicKey,
         clientSecret   : config.auth0SecretKey,

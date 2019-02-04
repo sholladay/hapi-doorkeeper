@@ -4,7 +4,7 @@ import cookie from 'hapi-auth-cookie';
 import bell from 'bell';
 import doorkeeper from '.';
 
-const mockRoute = (option) => {
+const makeRoute = (option) => {
     return {
         method : 'GET',
         path   : '/',
@@ -15,8 +15,8 @@ const mockRoute = (option) => {
     };
 };
 
-const mockServer = async (option) => {
-    const { plugin, route } = {
+const makeServer = async (option) => {
+    const { plugin } = {
         plugin : [cookie, bell, {
             plugin  : doorkeeper,
             options : {
@@ -26,33 +26,21 @@ const mockServer = async (option) => {
                 auth0SecretKey   : 'evenmoresecretthanthesessionsecretkey'
             }
         }],
-        route  : mockRoute(),
         ...option
     };
     const server = hapi.server();
     if (plugin) {
         await server.register(plugin);
     }
-    if (route) {
-        server.route(route);
-    }
     return server;
 };
 
-const mockRequest = (server, option) => {
-    return server.inject({
-        method : 'GET',
-        url    : '/',
-        ...option
-    });
-};
-
 test('without doorkeeper', async (t) => {
-    const server = await mockServer({
-        plugin : null
-    });
-    const response = await mockRequest(server);
+    const server = await makeServer({ plugin : null });
+    server.route(makeRoute());
+    const response = await server.inject('/');
     t.is(response.statusCode, 200);
+    t.is(response.headers['content-type'], 'text/html; charset=utf-8');
     t.is(response.payload, 'foo');
 });
 
@@ -64,39 +52,89 @@ test('missing options', async (t) => {
 });
 
 test('default auth', async (t) => {
-    const server = await mockServer();
-    const response = await mockRequest(server);
+    const server = await makeServer();
+    server.route(makeRoute());
+    const response = await server.inject('/');
     t.is(response.statusCode, 200);
+    t.is(response.headers['content-type'], 'text/html; charset=utf-8');
     t.is(response.payload, 'foo');
 });
 
-test('required auth', async (t) => {
-    const server = await mockServer({
-        route : mockRoute({
-            config : {
-                auth : {
-                    strategy : 'session',
-                    mode     : 'required'
-                }
+test('does not redirect without accept header', async (t) => {
+    const server = await makeServer();
+    server.route(makeRoute({
+        config : {
+            auth : {
+                strategy : 'session',
+                mode     : 'required'
             }
-        })
+        }
+    }));
+    const response = await server.inject('/');
+    t.is(response.statusCode, 401);
+    t.is(response.statusMessage, 'Unauthorized');
+    t.is(response.headers['content-type'], 'application/json; charset=utf-8');
+    t.false('location' in response.headers);
+    t.is(JSON.parse(response.payload).message, 'Missing authentication');
+});
+
+test('honors accept header', async (t) => {
+    const server = await makeServer();
+    server.route(makeRoute({
+        config : {
+            auth : {
+                strategy : 'session',
+                mode     : 'required'
+            }
+        }
+    }));
+
+    const anyResp = await server.inject({
+        url     : '/',
+        headers : {
+            accept : '*/*'
+        }
     });
-    const response = await mockRequest(server);
-    t.is(response.statusCode, 302);
-    t.is(response.headers.location, '/login?next=' + encodeURIComponent('/'));
-    t.is(response.payload, 'You are being redirected...');
+    t.is(anyResp.statusCode, 401);
+    t.is(anyResp.statusMessage, 'Unauthorized');
+    t.is(anyResp.headers['content-type'], 'application/json; charset=utf-8');
+    t.false('location' in anyResp.headers);
+    t.is(JSON.parse(anyResp.payload).message, 'Missing authentication');
+
+    const jsonPreferred = await server.inject({
+        url     : '/',
+        headers : {
+            accept : 'text/html;q=0.9, application/json'
+        }
+    });
+    t.is(jsonPreferred.statusCode, 401);
+    t.is(jsonPreferred.statusMessage, 'Unauthorized');
+    t.is(jsonPreferred.headers['content-type'], 'application/json; charset=utf-8');
+    t.false('location' in jsonPreferred.headers);
+    t.is(JSON.parse(jsonPreferred.payload).message, 'Missing authentication');
+
+    const htmlResp = await server.inject({
+        url     : '/',
+        headers : {
+            accept : 'text/html'
+        }
+    });
+    t.is(htmlResp.statusCode, 302);
+    t.is(htmlResp.statusMessage, 'Found');
+    t.is(htmlResp.headers['content-type'], 'text/html; charset=utf-8');
+    t.is(htmlResp.headers.location, '/login?next=' + encodeURIComponent('/'));
+    t.is(htmlResp.payload, 'You are being redirected...');
 });
 
 test('/login route', async (t) => {
-    const server = await mockServer({
-        route : null
-    });
-    const response = await mockRequest(server, {
-        url : '/login'
-    });
+    const server = await makeServer();
+    const response = await server.inject('/login');
 
     t.is(response.statusCode, 302);
+    t.is(response.statusMessage, 'Found');
+    t.is(response.headers['set-cookie'].length, 1);
     t.true(response.headers['set-cookie'][0].startsWith('bell-auth0='));
+    t.true(response.headers['set-cookie'][0].includes('; Max-Age=86400; Expires='));
     t.true(response.headers['set-cookie'][0].endsWith('; Secure; HttpOnly; SameSite=Strict; Path=/'));
     t.true(response.headers.location.startsWith('https://my-app.auth0.com/authorize?client_id=someclientid&response_type=code&redirect_uri=https%3A%2F%2F'));
     t.true(response.headers.location.includes('%2Flogin&state='));
@@ -104,31 +142,22 @@ test('/login route', async (t) => {
 });
 
 test('/logout route', async (t) => {
-    const server = await mockServer({
-        route : null
-    });
-    const response = await mockRequest(server, {
-        url : '/logout'
-    });
+    const server = await makeServer();
+    const response = await server.inject('/logout');
     t.is(response.statusCode, 302);
+    t.is(response.statusMessage, 'Found');
     t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
     t.is(response.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/')}`);
     t.is(response.payload, '');
 });
 
 test('/logout redirects to next', async (t) => {
-    const server = await mockServer({
-        route : null
-    });
-    const bare = await mockRequest(server, {
-        url : '/logout?next=bah'
-    });
+    const server = await makeServer();
+    const bare = await server.inject('/logout?next=bah');
     t.is(bare.statusCode, 302);
     t.is(bare.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
 
-    const slash = await mockRequest(server, {
-        url : '/logout?next=/bah'
-    });
+    const slash = await server.inject('/logout?next=/bah');
     t.is(slash.statusCode, 302);
     t.is(slash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent(server.info.uri + '/bah')}`);
     t.is(slash.payload, '');
@@ -142,30 +171,28 @@ test('/logout redirects to next', async (t) => {
 });
 
 test('/logout rejects absolute next', async (t) => {
-    const server = await mockServer({
-        route : null
-    });
-    const absolute = await mockRequest(server, {
-        url : '/logout?next=http://example.com/bah'
-    });
+    const server = await makeServer();
+    const absolute = await server.inject('/logout?next=http://example.com/bah');
     t.is(absolute.statusCode, 400);
+    t.is(absolute.statusMessage, 'Bad Request');
+    t.is(absolute.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(absolute.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const encodedAbsolute = await mockRequest(server, {
-        url : '/logout?next=' + encodeURIComponent('http://example.com/bah')
-    });
+    const encodedAbsolute = await server.inject('/logout?next=' + encodeURIComponent('http://example.com/bah'));
     t.is(encodedAbsolute.statusCode, 400);
+    t.is(encodedAbsolute.statusMessage, 'Bad Request');
+    t.is(encodedAbsolute.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(encodedAbsolute.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const schemeless = await mockRequest(server, {
-        url : '/logout?next=//example.com/bah'
-    });
+    const schemeless = await server.inject('/logout?next=//example.com/bah');
     t.is(schemeless.statusCode, 400);
+    t.is(schemeless.statusMessage, 'Bad Request');
+    t.is(schemeless.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(schemeless.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 
-    const encodedSchemeless = await mockRequest(server, {
-        url : '/logout?next=' + encodeURIComponent('//example.com/bah')
-    });
+    const encodedSchemeless = await server.inject('/logout?next=' + encodeURIComponent('//example.com/bah'));
     t.is(encodedSchemeless.statusCode, 400);
+    t.is(encodedSchemeless.statusMessage, 'Bad Request');
+    t.is(encodedSchemeless.headers['content-type'], 'application/json; charset=utf-8');
     t.is(JSON.parse(encodedSchemeless.payload).message, 'Absolute URLs are not allowed in the `next` parameter for security reasons');
 });
