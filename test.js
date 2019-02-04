@@ -57,10 +57,10 @@ test('without doorkeeper', async (t) => {
 });
 
 test('missing options', async (t) => {
-    const err = await t.throws(mockServer({
+    const err = await t.throwsAsync(mockServer({
         plugin : [cookie, bell, doorkeeper]
     }));
-    t.regex(err.message, /required/);
+    t.regex(err.message, /required/u);
 });
 
 test('default auth', async (t) => {

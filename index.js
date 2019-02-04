@@ -19,7 +19,7 @@ const register = (server, option) => {
         sessionSecretKey : joi.string().required().min(32),
         auth0Domain      : joi.string().required().hostname().min(3),
         auth0PublicKey   : joi.string().required().token().min(10),
-        auth0SecretKey   : joi.string().required().min(30).regex(/^[A-Za-z\d_-]+$/)
+        auth0SecretKey   : joi.string().required().min(30).regex(/^[A-Za-z\d_-]+$/u)
     }));
 
     server.auth.strategy('session', 'cookie', {
