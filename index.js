@@ -105,9 +105,6 @@ const register = (server, option) => {
         handler(request, h) {
             request.cookieAuth.clear();
             const returnTo = encodeURIComponent('https://' + request.info.host + resolveNext(request.query));
-            console.log('handler: returnTo', returnTo);
-            console.log('hendler: decoded', 'https://' + request.info.host + resolveNext(request.query));
-            console.log('handler: request.info', request.info);
             return h.redirect(`https://${config.auth0Domain}/v2/logout?returnTo=${returnTo}`);
         }
     });
