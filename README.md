@@ -2,7 +2,7 @@
 
 > User authentication for web servers
 
-This [hapi](https://hapijs.com) plugin adds a secure login and logout system to your app by integrating [Auth0](https://auth0.com/).
+This [hapi](https://hapijs.com) plugin adds a secure login and logout system to your app by integrating Azure OAuth.
 
 ## Contents
 
@@ -46,9 +46,9 @@ const init = async () => {
         plugin  : doorkeeper,
         options : {
             sessionSecretKey : process.env.SESSION_SECRET_KEY,
-            auth0Domain      : process.env.AUTH0_DOMAIN,
-            auth0PublicKey   : process.env.AUTH0_PUBLIC_KEY,
-            auth0SecretKey   : process.env.AUTH0_SECRET_KEY
+            tenant           : process.env.TENANT,
+            azurePublicKey   : process.env.AZURE_PUBLIC_KEY,
+            azureSecretKey   : process.env.AZURE_SECRET_KEY
         }
     }]);
     server.route({
@@ -62,7 +62,7 @@ const init = async () => {
         },
         handler(request) {
             const { user } = request.auth.credentials;
-            return `Hi ${user.name}, you are logged in! Here is the profile from Auth0: <pre>${JSON.stringify(user.raw, null, 4)}</pre> <a href="/logout">Click here to log out</a>`;
+            return `Hi ${user.name}, you are logged in! Here is the profile from Azure: <pre>${JSON.stringify(user.raw, null, 4)}</pre> <a href="/logout">Click here to log out</a>`;
         }
     });
     await server.start();
@@ -74,13 +74,13 @@ init();
 
 In the example above, only logged in users are able to access `/dashboard`, as denoted by the `session` strategy being `required`. If you are logged in, it will display your profile, otherwise it will redirect you to a login screen and after you log in it will redirect you back to `/dashboard`.
 
-Authentication is managed by [Auth0](https://auth0.com/). A few steps are required to finish the integration.
+Authentication is managed by Azure. A few steps are required to finish the integration.
 
- 1. [Sign up for Auth0](https://auth0.com/)
- 2. [Set up an Auth0 Application](https://auth0.com/docs/applications/application-types)
- 3. [Provide credentials from Auth0](#plugin-options)
+ 1. Sign up for Azure
+ 2. Setup an application with Azure (be sure to whitelist `https://<your-domain>/login`as a valid login and callback/redirect route)
+ 3. Configure `hapi-doorkeeper` with the Azure credentials
 
-After users log in, a session cookie is created for them so that the server remembers them on future requests. The cookie is stateless, encrypted, and secured using flags such as `HttpOnly`. The user's [Auth0 profile](https://auth0.com/docs/user-profile/normalized/oidc) is automatically retrieved and stored in the session when they log in. You can access the profile data at `request.auth.credentials.user`. See [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) and [iron](https://github.com/hueniverse/iron) for details about the cookie implementation and security.
+After users log in, a session cookie is created for them so that the server remembers them on future requests. The cookie is stateless, encrypted, and secured using flags such as `HttpOnly`. The user's Azure profile is automatically retrieved and stored in the session when they log in. You can access the profile data at `request.auth.credentials.user`. See [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) and [iron](https://github.com/hueniverse/iron) for details about the cookie implementation and security.
 
 Note that your server must support HTTPS for everything to work properly. If you need help with that, see this [How To Guide](https://medium.freecodecamp.org/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec).
 
@@ -98,7 +98,7 @@ Tags: `user`, `auth`, `session`, `login`
 
 Begins a user session. If a session is already active, the user will be given the opportunity to log in with a different account.
 
-If users deny access to a [social](https://auth0.com/docs/identityproviders) account, they will be redirected back to the login page so that they may try again, because they probably clicked the wrong account or provider by accident. Other login errors will be returned to the client with a 401 Unauthorized status. You may use [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) or [`onPreResponse`](https://hapijs.com/api#error-transformation) to display beautiful HTML pages for them.
+Login errors will be returned to the client with a 401 Unauthorized status. You may use [`hapi-error-page`](https://github.com/sholladay/hapi-error-page) or [`onPreResponse`](https://hapijs.com/api#error-transformation) to display beautiful HTML pages for them.
 
 After logging in, users are redirected to the URL specified in the `next` query parameter, which defaults to `/`, the root of the server.
 
@@ -122,31 +122,29 @@ Type: `string`
 
 A passphrase used to secure session cookies. Should be at least 32 characters long and occasionally rotated. See [Iron](https://github.com/hueniverse/iron) for details.
 
-#### auth0Domain
+#### tenant
 
 Type: `string`
 
-The domain used to log in to Auth0. This should be the domain of your tenant (e.g. `my-company.auth0.com`) or your own [custom domain](https://auth0.com/docs/custom-domains) (e.g. `auth.my-company.com`).
+The tenant ID used to log in to Azure.
 
-#### auth0PublicKey
-
-Type: `string`
-
-The ID of your [Auth0 Application](https://manage.auth0.com/#/applications), sometimes referred to as the Client ID.
-
-#### auth0SecretKey
+#### azurePublicKey
 
 Type: `string`
 
-The secret key of your [Auth0 Application](https://manage.auth0.com/#/applications), sometimes referred to as the Client Secret.
+The ID of your Azure application, sometimes referred to as the Client ID.
+
+#### azureSecretKey
+
+Type: `string`
+
+The secret key of your Azure application, sometimes referred to as the Client Secret.
 
 #### providerParams(request)
 
 Type: `function`
 
-An optional event handler where you can decide which query parameters to send to Auth0. Should return an object of key/value pairs that will be serialized to a query string. See the [`providerParams` option](https://github.com/hapijs/bell/blob/master/API.md#options) in [bell](https://github.com/hapijs/bell) for details.
-
-By default, we forward any `screen` parameter passed to `/login`, so that you can implement "Log In" and "Sign Up" buttons that go to the correct screen. To set this up, modify your [Hosted Login Page](https://auth0.com/docs/hosted-pages/login#how-to-customize-your-login-page) and set Lock's [`initialScreen`](https://auth0.com/docs/libraries/lock/v11/configuration#initialscreen-string-) option to use the value of `config.extraParams.screen`. After that, visiting `/login?screen=signUp` will show the Sign Up screen instead of the Log In screen.
+An optional event handler where you can decide which query parameters to send to Azure. Should return an object of key/value pairs that will be serialized to a query string. See the [`providerParams` option](https://github.com/hapijs/bell/blob/master/API.md#options) in [bell](https://github.com/hapijs/bell) for details.
 
 #### validateFunc(request, session)
 
@@ -155,10 +153,6 @@ Type: `function`
 An optional event handler where you can put business logic to check and modify the session on each request. See the [`validateFunc` option](https://github.com/hapijs/hapi-auth-cookie#hapi-auth-cookie) in [hapi-auth-cookie](https://github.com/hapijs/hapi-auth-cookie) for details.
 
 This is a good place to set [authorization scopes for users](https://futurestud.io/tutorials/hapi-restrict-user-access-with-scopes), if you need to restrict access to some routes for certain users.
-
-## Related
-
- - [lock](https://github.com/auth0/lock) - UI widget used on the login page
 
 ## Contributing
 

@@ -7,12 +7,6 @@ const joi = require('joi');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
-const defaultParams = (request) => {
-    const { screen } = request.query;
-    const lastScreen = Array.isArray(screen) ? screen[screen.length - 1] : screen;
-    return lastScreen ? { screen : lastScreen } : {};
-};
-
 const redirectTo = ({ headers }) => {
     const [favoriteType] = accept.mediaTypes(headers.accept);
     return ['text/html', 'text/*'].includes(favoriteType) && '/login';
@@ -21,11 +15,11 @@ const redirectTo = ({ headers }) => {
 const register = (server, option) => {
     const config = joi.attempt(option, joi.object().required().keys({
         validateFunc     : joi.func().optional(),
-        providerParams   : joi.func().optional().default(defaultParams),
+        providerParams   : joi.func().optional(),
         sessionSecretKey : joi.string().required().min(32),
-        auth0Domain      : joi.string().required().hostname().min(3),
-        auth0PublicKey   : joi.string().required().token().min(10),
-        auth0SecretKey   : joi.string().required().min(30).regex(/^[A-Za-z\d_-]+$/u)
+        tenant           : joi.string().required(),
+        azurePublicKey   : joi.string().required().token().min(10),
+        azureSecretKey   : joi.string().required().min(30).regex(/^[A-Za-z\d_-]+$/u)
     }));
 
     server.auth.strategy('session', 'cookie', {
@@ -40,15 +34,15 @@ const register = (server, option) => {
         isSameSite   : 'Lax'
     });
 
-    server.auth.strategy('auth0', 'bell', {
-        provider : 'auth0',
+    server.auth.strategy('azure', 'bell', {
+        provider : 'azure',
         config   : {
-            domain : config.auth0Domain
+            tenant : config.tenant
         },
         ttl            : 1000 * 60 * 60 * 24,
         password       : config.sessionSecretKey,
-        clientId       : config.auth0PublicKey,
-        clientSecret   : config.auth0SecretKey,
+        clientId       : config.azurePublicKey,
+        clientSecret   : config.azureSecretKey,
         isHttpOnly     : true,
         isSecure       : true,
         forceHttps     : true,
@@ -71,7 +65,7 @@ const register = (server, option) => {
             description : 'Begin a user session',
             tags        : ['user', 'auth', 'session', 'login'],
             auth        : {
-                strategy : 'auth0',
+                strategy : 'azure',
                 mode     : 'try'
             }
         },
@@ -79,7 +73,7 @@ const register = (server, option) => {
             const { auth } = request;
             if (auth.isAuthenticated) {
                 // Credentials also have: .expiresIn, .token, .refreshToken
-                // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
+                // Put the Azure profile in a cookie. The browser may ignore it If it is too big.
                 request.cookieAuth.set({ user : auth.credentials.profile });
                 return h.redirect(resolveNext(auth.credentials.query));
             }
@@ -104,8 +98,7 @@ const register = (server, option) => {
         },
         handler(request, h) {
             request.cookieAuth.clear();
-            const returnTo = encodeURIComponent('https://' + request.info.host + resolveNext(request.query));
-            return h.redirect(`https://${config.auth0Domain}/v2/logout?returnTo=${returnTo}`);
+            return h.redirect(`/`);
         }
     });
 };
