@@ -1,7 +1,7 @@
 import test from 'ava';
-import hapi from 'hapi';
-import cookie from 'hapi-auth-cookie';
-import bell from 'bell';
+import hapi from '@hapi/hapi';
+import cookie from '@hapi/cookie';
+import bell from '@hapi/bell';
 import doorkeeper from '.';
 
 const makeRoute = (option) => {
@@ -147,7 +147,7 @@ test('/logout route', async (t) => {
     t.is(response.statusCode, 302);
     t.is(response.statusMessage, 'Found');
     t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
-    t.is(response.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/')}`);
+    t.is(response.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host.toLowerCase() + ':' + server.info.port + '/')}`);
     t.is(response.payload, '');
 });
 
@@ -156,19 +156,19 @@ test('/logout redirects to next', async (t) => {
     const bare = await server.inject('/logout?next=bah');
     t.is(bare.statusCode, 302);
     t.is(bare.statusMessage, 'Found');
-    t.is(bare.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah')}`);
+    t.is(bare.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host.toLowerCase() + ':' + server.info.port + '/bah')}`);
     t.is(bare.payload, '');
 
     const slash = await server.inject('/logout?next=/bah');
     t.is(slash.statusCode, 302);
     t.is(slash.statusMessage, 'Found');
-    t.is(slash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah')}`);
+    t.is(slash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host.toLowerCase() + ':' + server.info.port + '/bah')}`);
     t.is(slash.payload, '');
 
     const encodedSlash = await server.inject('/logout?next=' + encodeURIComponent('/bah'));
     t.is(encodedSlash.statusCode, 302);
     t.is(encodedSlash.statusMessage, 'Found');
-    t.is(encodedSlash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah')}`);
+    t.is(encodedSlash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host.toLowerCase() + ':' + server.info.port + '/bah')}`);
     t.is(encodedSlash.payload, '');
 });
 

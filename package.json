@@ -28,21 +28,21 @@
         "index.js"
     ],
     "peerDependencies": {
-        "hapi": ">=17"
+        "hapi": ">=18"
     },
     "dependencies": {
-        "accept": "^3.0.2",
-        "boom": "^7.1.1",
-        "joi": "^14.3.1",
+        "@hapi/accept": "^4.0.0",
+        "@hapi/boom": "^8.0.1",
+        "@hapi/joi": "^16.1.8",
         "url-type": "^0.2.1"
     },
     "devDependencies": {
-        "ava": "^1.0.0-beta.7",
-        "bell": "^9.3.1",
-        "eslint-config-tidy": "^0.7.0",
-        "hapi": "^17.2.0",
-        "hapi-auth-cookie": "^9.0.0",
-        "xo": "^0.24.0"
+        "@hapi/bell": "^11.1.0",
+        "@hapi/cookie": "^10.1.2",
+        "@hapi/hapi": "^18.4.0",
+        "ava": "^2.4.0",
+        "eslint-config-tidy": "^0.10.0",
+        "xo": "^0.25.3"
     },
     "keywords": [
         "hapi",

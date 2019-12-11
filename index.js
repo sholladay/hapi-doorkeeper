@@ -1,9 +1,9 @@
 'use strict';
 
 const path = require('path');
-const boom = require('boom');
-const accept = require('accept');
-const joi = require('joi');
+const boom = require('@hapi/boom');
+const accept = require('@hapi/accept');
+const joi = require('@hapi/joi');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
@@ -20,39 +20,44 @@ const redirectTo = ({ headers }) => {
 
 const register = (server, option) => {
     const config = joi.attempt(option, joi.object().required().keys({
-        validateFunc     : joi.func().optional(),
-        providerParams   : joi.func().optional().default(defaultParams),
+        auth0Domain    : joi.string().required().hostname().min(3),
+        auth0PublicKey : joi.string().required().token().min(10),
+        auth0SecretKey : joi.string().required().min(30).regex(/^[A-Za-z\d_-]+$/u),
+        providerParams : joi.func().optional().default(() => {
+            return defaultParams;
+        }),
         sessionSecretKey : joi.string().required().min(32),
-        auth0Domain      : joi.string().required().hostname().min(3),
-        auth0PublicKey   : joi.string().required().token().min(10),
-        auth0SecretKey   : joi.string().required().min(30).regex(/^[A-Za-z\d_-]+$/u)
+        validateFunc     : joi.func().optional()
     }));
 
     server.auth.strategy('session', 'cookie', {
-        validateFunc : config.validateFunc,
-        password     : config.sessionSecretKey,
-        cookie       : 'sid',
+        appendNext : true,
+        cookie     : {
+            clearInvalid : true,
+            isHttpOnly   : true,
+            isSameSite   : 'Lax',
+            isSecure     : true,
+            name         : 'sid',
+            password     : config.sessionSecretKey,
+            path         : '/'
+        },
         redirectTo,
-        appendNext   : true,
-        clearInvalid : true,
-        isHttpOnly   : true,
-        isSecure     : true,
-        isSameSite   : 'Lax'
+        validateFunc : config.validateFunc
     });
 
     server.auth.strategy('auth0', 'bell', {
-        provider : 'auth0',
-        config   : {
+        clientId     : config.auth0PublicKey,
+        clientSecret : config.auth0SecretKey,
+        config       : {
             domain : config.auth0Domain
         },
-        ttl            : 1000 * 60 * 60 * 24,
-        password       : config.sessionSecretKey,
-        clientId       : config.auth0PublicKey,
-        clientSecret   : config.auth0SecretKey,
+        forceHttps     : true,
         isHttpOnly     : true,
         isSecure       : true,
-        forceHttps     : true,
-        providerParams : config.providerParams
+        password       : config.sessionSecretKey,
+        provider       : 'auth0',
+        providerParams : config.providerParams,
+        ttl            : 1000 * 60 * 60 * 24
     });
 
     const resolveNext = (query) => {
@@ -116,7 +121,7 @@ module.exports.plugin = {
     // TODO: Consider bundling bell and hapi-auth-cookie for the user, like this:
     // https://github.com/ruiquelhas/copperfield/blob/b9b0d52d0f136a14885de471b32fb00d5edd2541/lib/index.js#L16
     dependencies : [
-        'hapi-auth-cookie',
-        'bell'
+        '@hapi/cookie',
+        '@hapi/bell'
     ]
 };
