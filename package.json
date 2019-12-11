@@ -28,7 +28,7 @@
         "index.js"
     ],
     "peerDependencies": {
-        "hapi": ">=18"
+        "@hapi/hapi": ">=18"
     },
     "dependencies": {
         "@hapi/accept": "^4.0.0",
