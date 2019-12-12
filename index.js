@@ -122,6 +122,8 @@ module.exports.plugin = {
     // https://github.com/ruiquelhas/copperfield/blob/b9b0d52d0f136a14885de471b32fb00d5edd2541/lib/index.js#L16
     dependencies : [
         '@hapi/cookie',
-        '@hapi/bell'
+        // TODO: This is actually '@hapi/bell', update the string when hapijs/bell#445 is released:
+        // https://github.com/hapijs/bell/pull/445
+        'bell'
     ]
 };
