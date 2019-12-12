@@ -26,7 +26,7 @@ This [hapi](https://hapijs.com) plugin adds a secure login and logout system to 
 ## Install
 
 ```sh
-npm install hapi-doorkeeper --save
+npm install hapi-doorkeeper
 ```
 
 ## Usage
@@ -34,9 +34,9 @@ npm install hapi-doorkeeper --save
 Register the plugin on your server to add the `/login` and `/logout` routes, as well as the `session` strategy so that you can protect your app's routes with authentication.
 
 ```js
-const hapi = require('hapi');
-const bell = require('bell');
-const cookie = require('hapi-auth-cookie');
+const hapi = require('@hapi/hapi');
+const bell = require('@hapi/bell');
+const cookie = require('@hapi/cookie');
 const doorkeeper = require('hapi-doorkeeper');
 
 const server = hapi.server();
