@@ -21,25 +21,25 @@
         "email": "me@seth-holladay.com"
     },
     "engines": {
-        "node": ">=10"
+        "node": ">=12"
     },
     "license": "MPL-2.0",
     "files": [
         "index.js"
     ],
     "peerDependencies": {
-        "@hapi/hapi": ">=18"
+        "@hapi/hapi": ">=19"
     },
     "dependencies": {
-        "@hapi/accept": "^4.0.0",
-        "@hapi/boom": "^8.0.1",
-        "@hapi/joi": "^16.1.8",
+        "@hapi/accept": "^5.0.0",
+        "@hapi/boom": "^9.0.0",
+        "@hapi/joi": "^17.0.2",
         "url-type": "^0.2.1"
     },
     "devDependencies": {
-        "@hapi/bell": "^11.1.0",
-        "@hapi/cookie": "^10.1.2",
-        "@hapi/hapi": "^18.4.0",
+        "@hapi/bell": "^12.0.0",
+        "@hapi/cookie": "^11.0.0",
+        "@hapi/hapi": "^19.0.3",
         "ava": "^2.4.0",
         "eslint-config-tidy": "^0.10.0",
         "xo": "^0.25.3"
