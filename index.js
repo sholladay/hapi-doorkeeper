@@ -35,7 +35,7 @@ const register = (server, option) => {
         cookie     : {
             clearInvalid : true,
             isHttpOnly   : true,
-            isSameSite   : 'Lax',
+            isSameSite   : 'Strict',
             isSecure     : true,
             name         : 'sid',
             password     : config.sessionSecretKey,
