@@ -1,6 +1,6 @@
 {
     "name": "hapi-doorkeeper",
-    "version": "0.11.2",
+    "version": "0.12.0",
     "description": "User authentication for web servers",
     "homepage": "https://github.com/sholladay/hapi-doorkeeper",
     "main": "index.js",
