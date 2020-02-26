@@ -37,7 +37,7 @@ const register = (server, option) => {
             isHttpOnly   : true,
             isSameSite   : 'Lax',
             isSecure     : true,
-            name         : 'sid',
+            name         : '__Host-session',
             password     : config.sessionSecretKey,
             path         : '/'
         },
@@ -118,8 +118,8 @@ const register = (server, option) => {
 module.exports.plugin = {
     register,
     pkg,
-    // TODO: Consider bundling bell and hapi-auth-cookie for the user, like this:
-    // https://github.com/ruiquelhas/copperfield/blob/b9b0d52d0f136a14885de471b32fb00d5edd2541/lib/index.js#L16
+    // TODO: Consider registering dependencies for the user, like this:
+    // https://github.com/ruiquelhas/copperfield/blob/fe5629ed8f5edea740ca4917dfac6a779e644b45/lib/index.js#L10-L16
     dependencies : [
         '@hapi/cookie',
         '@hapi/bell'

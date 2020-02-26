@@ -151,7 +151,7 @@ test('/logout route', async (t) => {
     const response = await server.inject('/logout');
     t.is(response.statusCode, 302);
     t.is(response.statusMessage, 'Found');
-    t.is(response.headers['set-cookie'][0], 'sid=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
+    t.is(response.headers['set-cookie'][0], '__Host-session=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; HttpOnly; SameSite=Lax; Path=/');
     t.is(response.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/')}`);
     t.is(response.payload, '');
 });
