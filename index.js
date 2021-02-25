@@ -7,10 +7,16 @@ const joi = require('joi');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 
-const defaultParams = (request) => {
-    const { screen } = request.query;
+const getLoginParams = (request) => {
+    const { screen, user } = request.query;
     const lastScreen = Array.isArray(screen) ? screen[screen.length - 1] : screen;
-    return lastScreen ? { screen : lastScreen } : {};
+    const lastUser = Array.isArray(user) ? user[user.length - 1] : user;
+    /* eslint-disable camelcase */
+    return {
+        ...(lastScreen ? { screen_hint : lastScreen } : {}),
+        ...(lastUser ? { login_hint : lastUser } : {})
+    };
+    /* eslint-enable camelcase */
 };
 
 const redirectTo = ({ headers }) => {
@@ -24,7 +30,7 @@ const register = (server, option) => {
         auth0PublicKey : joi.string().required().token().min(10),
         auth0SecretKey : joi.string().required().min(30).regex(/^[A-Za-z\d_-]+$/u),
         providerParams : joi.func().optional().default(() => {
-            return defaultParams;
+            return getLoginParams;
         }),
         sessionSecretKey : joi.string().required().min(32),
         validateFunc     : joi.func().optional()
@@ -84,7 +90,7 @@ const register = (server, option) => {
             const { auth } = request;
             if (auth.isAuthenticated) {
                 // Credentials also have: .expiresIn, .token, .refreshToken
-                // Put the Auth0 profile in a cookie. The browser may ignore it If it is too big.
+                // Put the Auth0 profile in a cookie. The browser may ignore it if it is too big.
                 request.cookieAuth.set({ user : auth.credentials.profile });
                 return h.redirect(resolveNext(auth.credentials.query));
             }

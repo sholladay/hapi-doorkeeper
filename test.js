@@ -146,6 +146,26 @@ test('/login route', async (t) => {
     t.is(response.payload, '');
 });
 
+test('/login with screen param', async (t) => {
+    const server = await makeServer();
+    const response = await server.inject('/login?screen=awesome');
+
+    t.is(response.statusCode, 302);
+    t.is(response.statusMessage, 'Found');
+    t.true(response.headers.location.includes('screen_hint=awesome'));
+    t.is(response.payload, '');
+});
+
+test('/login with user param', async (t) => {
+    const server = await makeServer();
+    const response = await server.inject('/login?user=me@example.com');
+
+    t.is(response.statusCode, 302);
+    t.is(response.statusMessage, 'Found');
+    t.true(response.headers.location.includes('login_hint=me%40example.com'));
+    t.is(response.payload, '');
+});
+
 test('/logout route', async (t) => {
     const server = await makeServer();
     const response = await server.inject('/logout');
@@ -170,11 +190,11 @@ test('/logout redirects to next', async (t) => {
     t.is(slash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah')}`);
     t.is(slash.payload, '');
 
-    const encodedSlash = await server.inject('/logout?next=' + encodeURIComponent('/bah'));
-    t.is(encodedSlash.statusCode, 302);
-    t.is(encodedSlash.statusMessage, 'Found');
-    t.is(encodedSlash.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah')}`);
-    t.is(encodedSlash.payload, '');
+    const encoded = await server.inject('/logout?next=' + encodeURIComponent('/bah?cat=meow&dog=woof'));
+    t.is(encoded.statusCode, 302);
+    t.is(encoded.statusMessage, 'Found');
+    t.is(encoded.headers.location, `https://my-app.auth0.com/v2/logout?returnTo=${encodeURIComponent('https://' + server.info.host + ':' + server.info.port + '/bah?cat=meow&dog=woof')}`);
+    t.is(encoded.payload, '');
 });
 
 test('/logout rejects absolute next', async (t) => {
