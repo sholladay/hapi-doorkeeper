@@ -143,10 +143,13 @@ The secret key of your [Auth0 Application](https://manage.auth0.com/#/applicatio
 #### providerParams(request)
 
 Type: `function`
+Default: Forward some query params from `/login` to Auth0
 
-An optional event handler where you can decide which query parameters to send to Auth0. Should return an object of key/value pairs that will be serialized to a query string. See the [`providerParams` option](https://github.com/hapijs/bell/blob/master/API.md#options) in [bell](https://github.com/hapijs/bell) for details.
+An optional event handler that receives an incoming request to the `/login` route and should return an object of query parameters to send to Auth0. See the [`providerParams` option](https://github.com/hapijs/bell/blob/master/API.md#options) in [bell](https://github.com/hapijs/bell) for details.
 
-By default, we forward any `screen` parameter passed to `/login`, so that you can implement "Log In" and "Sign Up" buttons that go to the correct screen. To set this up, modify your [Hosted Login Page](https://auth0.com/docs/hosted-pages/login#how-to-customize-your-login-page) and set Lock's [`initialScreen`](https://auth0.com/docs/libraries/lock/v11/configuration#initialscreen-string-) option to use the value of `config.extraParams.screen`. After that, visiting `/login?screen=signUp` will show the Sign Up screen instead of the Log In screen.
+By default, we forward `screen` as `screen_hint` and `user` as `login_hint`. Because Auth0's hosted login page has special behavior based on those parameters, if you visit `/login?user=jane@example.com`, then on the log in screen `jane@example.com` will be prefilled as the email address to log in with. Similarly, `/login?screen=signup` will cause the sign up page to display instead of log in. This makes it easy to implement "Log In" and "Sign Up" buttons on your website that go directly to the correct screen.
+
+For details on these parameters, see Auth0's documentation on the [New Universal Login Experience](https://auth0.com/docs/universal-login/new-experience).
 
 #### validateFunc(request, session)
 
