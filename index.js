@@ -20,8 +20,8 @@ const getLoginParams = (request) => {
 };
 
 const redirectTo = ({ headers }) => {
-    const [favoriteType] = accept.mediaTypes(headers.accept);
-    return ['text/html', 'text/*'].includes(favoriteType) && '/login';
+    const bestType = accept.mediaType(headers.accept, ['application/json', 'text/html']);
+    return (bestType === 'text/html') && '/login';
 };
 
 const register = (server, option) => {

@@ -129,6 +129,18 @@ test('honors accept header', async (t) => {
     t.is(htmlResp.headers['content-type'], 'text/html; charset=utf-8');
     t.is(htmlResp.headers.location, '/login?next=' + encodeURIComponent('/'));
     t.is(htmlResp.payload, 'You are being redirected...');
+
+    const firefox = await server.inject({
+        url     : '/',
+        headers : {
+            accept : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        }
+    });
+    t.is(firefox.statusCode, 302);
+    t.is(firefox.statusMessage, 'Found');
+    t.is(firefox.headers['content-type'], 'text/html; charset=utf-8');
+    t.is(firefox.headers.location, '/login?next=' + encodeURIComponent('/'));
+    t.is(firefox.payload, 'You are being redirected...');
 });
 
 test('/login route', async (t) => {
