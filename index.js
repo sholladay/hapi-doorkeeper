@@ -3,7 +3,7 @@
 const path = require('path');
 const boom = require('@hapi/boom');
 const accept = require('@hapi/accept');
-const joi = require('@hapi/joi');
+const joi = require('joi');
 const { hasHost } = require('url-type');
 const pkg = require('./package.json');
 

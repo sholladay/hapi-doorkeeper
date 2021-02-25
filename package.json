@@ -33,7 +33,7 @@
     "dependencies": {
         "@hapi/accept": "^5.0.0",
         "@hapi/boom": "^9.0.0",
-        "@hapi/joi": "^17.0.2",
+        "joi": "^17.4.0",
         "url-type": "^0.2.1"
     },
     "devDependencies": {
